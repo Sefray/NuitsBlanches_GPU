@@ -28,6 +28,8 @@ float *init_gaussian_kernel(int kernel_size, float sigma = 1.0f)
 
 int *smoothing(int *greyscale_image, int width, int height, int kernel_size = 5)
 {
+    assert(kernel_size % 2 == 1);
+
     float *kernel = init_gaussian_kernel(kernel_size);
     int ks2 = kernel_size / 2;
 
@@ -67,6 +69,8 @@ int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, in
     return ret;
 }
 
+int *closing_opening(int *img, int width, int height, int kernel_size = 9);
+
 void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
 {
     // 1.Greyscale
@@ -76,9 +80,11 @@ void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int
     auto modified_smoothed = smoothing(modified_greyscale, width, height);
 
     // 3.Difference
-    auto difference = compute_difference(ref_smoothed, modified_smoothed, width, height);
-    (void) difference;
+    auto diff = compute_difference(ref_smoothed, modified_smoothed, width, height);
+
     // 4.Closing/opening with disk or rectangle
+    auto close_open = closing_opening(diff, width, height);
+
     // 5.1.Thresh image
     // 5.2.Lakes
     // 6.Output Json
