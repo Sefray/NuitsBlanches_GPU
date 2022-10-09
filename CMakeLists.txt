@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 find_package(PNG REQUIRED)
 
-add_executable(png_test src/png_test.cc)
-target_compile_features(png_test PUBLIC cxx_std_17)
-target_link_libraries(png_test PRIVATE PNG::PNG)
+add_executable(main src/main.cc)
+target_compile_features(main PUBLIC cxx_std_17)
+target_link_libraries(main PRIVATE PNG::PNG)
 
