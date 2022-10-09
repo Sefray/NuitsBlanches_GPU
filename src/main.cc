@@ -1,32 +1,72 @@
 #include <iostream>
 #include <png++/png.hpp>
 #include <cstdlib>
+#include <cmath>
+#include <numbers>
 
 int *greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height)
 {
     int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
-    for (uint_fast32_t x = 0; x < width; x++)
-        for (uint_fast32_t y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
             ret[x + y * width] = static_cast<int>(image[y][x].red + image[y][x].green + image[y][x].blue) / 3;
     return ret;
 }
 
-int *smoothing(int *image)
+float *init_gaussian_kernel(int kernel_size, float sigma = 1.0f)
 {
-
+    float *ret = static_cast<float *>(std::malloc(sizeof(float) * kernel_size * kernel_size));
+    for (int i = 0; i < kernel_size; i++)
+        for (int j = 0; j < kernel_size; j++)
+        {
+            float x = i - kernel_size / 2;
+            float y = j - kernel_size / 2;
+            ret[i * kernel_size + j] = std::exp2f(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * sigma * sigma * std::numbers::pi);
+        }
+    return ret;
 }
 
-void pipeline(int * ref, png::image<png::rgb_pixel> modified, int width, int height)
+int *smoothing(int *greyscale_image, int width, int height, int kernel_size = 5)
 {
-    (void)ref;
-    (void)modified;
-    // 0.Pixel buffer
+    float *kernel = init_gaussian_kernel(kernel_size);
+    int ks2 = kernel_size / 2;
+
+    int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
+    for (int x = ks2; x < width - ks2; x++)
+        for (int y = ks2; y < height - ks2; y++)
+        {
+            float v = 0;
+            for (int i = -ks2; i <= ks2; i++)
+                for (int j = -ks2; j <= ks2; j++)
+                {
+                    int cx = x + i;
+                    int cy = y + j;
+                    int ci = i + ks2;
+                    int cj = j + ks2;
+                    v += kernel[cj * kernel_size + ci] * greyscale_image[cy * width + cx];
+                }
+            ret[x + y * width] = static_cast<int>(v);
+        }
+
+    free(kernel);
+    free(greyscale_image);
+
+    return ret;
+}
+
+void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
+{
+    (void)ref_smoothed;
 
     // 1.Greyscale
+    auto modified_greyscale = greyscale(modified, width, height);
 
     // 2.Smooth (gaussian filter)
+    auto modified_smoothed = smoothing(modified_greyscale, width, height);
+    (void) modified_smoothed;
 
     // 3.Difference
+    // auto difference = compute_difference(ref_smoothed, modified_smoothed);
     // 4.Closing/opening with disk or rectangle
     // 5.1.Thresh image
     // 5.2.Lakes
@@ -58,12 +98,16 @@ int main(int argc, char *argv[])
 
     png::image<png::rgb_pixel> ref(argv[1]);
 
-    auto buf = ref.get_pixbuf();
-    std::cout << buf[0][0].blue << std::endl;
+    int width = ref.get_width();
+    int height = ref.get_height();
+
+    auto ref_pixbuf = ref.get_pixbuf();
+    auto ref_greyscale = greyscale(ref_pixbuf, width, height);
+    auto ref_smoothed = smoothing(ref_greyscale, width, height);
 
     for (int i = 2; i < argc; i++)
     {
         png::image<png::rgb_pixel> modified(argv[i]);
-        pipeline(ref, modified);
+        pipeline(ref_smoothed, modified.get_pixbuf(), width, height);
     }
 }
