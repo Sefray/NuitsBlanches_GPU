@@ -54,19 +54,30 @@ int *smoothing(int *greyscale_image, int width, int height, int kernel_size = 5)
     return ret;
 }
 
+int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height)
+{
+    int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
+
+    for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
+            ret[y * width + x] = std::abs(ref_smoothed[y * width + x] - modified_smoothed[y * width + x]);
+
+    free(modified_smoothed);
+
+    return ret;
+}
+
 void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
 {
-    (void)ref_smoothed;
-
     // 1.Greyscale
     auto modified_greyscale = greyscale(modified, width, height);
 
     // 2.Smooth (gaussian filter)
     auto modified_smoothed = smoothing(modified_greyscale, width, height);
-    (void) modified_smoothed;
 
     // 3.Difference
-    // auto difference = compute_difference(ref_smoothed, modified_smoothed);
+    auto difference = compute_difference(ref_smoothed, modified_smoothed, width, height);
+    (void) difference;
     // 4.Closing/opening with disk or rectangle
     // 5.1.Thresh image
     // 5.2.Lakes
@@ -101,8 +112,7 @@ int main(int argc, char *argv[])
     int width = ref.get_width();
     int height = ref.get_height();
 
-    auto ref_pixbuf = ref.get_pixbuf();
-    auto ref_greyscale = greyscale(ref_pixbuf, width, height);
+    auto ref_greyscale = greyscale(ref.get_pixbuf(), width, height);
     auto ref_smoothed = smoothing(ref_greyscale, width, height);
 
     for (int i = 2; i < argc; i++)
@@ -110,4 +120,6 @@ int main(int argc, char *argv[])
         png::image<png::rgb_pixel> modified(argv[i]);
         pipeline(ref_smoothed, modified.get_pixbuf(), width, height);
     }
+
+    free(ref_smoothed);
 }
