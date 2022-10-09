@@ -1,15 +1,31 @@
 #include <iostream>
 #include <png++/png.hpp>
+#include <cstdlib>
 
-
-
-void pipeline(png::image<png::rgb_pixel> ref, png::image<png::rgb_pixel> modified)
+int *greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height)
 {
-    (void) ref;
-    (void) modified;
+    int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
+    for (uint_fast32_t x = 0; x < width; x++)
+        for (uint_fast32_t y = 0; y < height; y++)
+            ret[x + y * width] = static_cast<int>(image[y][x].red + image[y][x].green + image[y][x].blue) / 3;
+    return ret;
+}
+
+int *smoothing(int *image)
+{
+
+}
+
+void pipeline(int * ref, png::image<png::rgb_pixel> modified, int width, int height)
+{
+    (void)ref;
+    (void)modified;
+    // 0.Pixel buffer
 
     // 1.Greyscale
+
     // 2.Smooth (gaussian filter)
+
     // 3.Difference
     // 4.Closing/opening with disk or rectangle
     // 5.1.Thresh image
@@ -30,7 +46,6 @@ void pipeline(png::image<png::rgb_pixel> ref, png::image<png::rgb_pixel> modifie
         ]
     }
     */
-
 }
 
 int main(int argc, char *argv[])
