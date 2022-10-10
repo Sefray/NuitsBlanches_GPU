@@ -69,7 +69,54 @@ int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, in
     return ret;
 }
 
-int *closing_opening(int *img, int width, int height, int kernel_size = 9);
+enum mask_type
+{
+    square,
+    // disk,
+};
+
+int *create_mask(int kernel_size = 11, enum mask_type type = square)
+{
+    int *ret;
+    switch (type)
+    {
+    case square:
+        ret = static_cast<int *>(std::malloc(sizeof(int) * kernel_size * kernel_size));
+        for (int x = 0; x < kernel_size; x++)
+            for (int y = 0; y < kernel_size; y++)
+                ret[y * kernel_size + x] = 1;
+        break;
+    }
+
+    return ret;
+}
+
+int *opening(int *img, int width, int height, int *mask, int kernel_size)
+{
+}
+
+int *closing(int *img, int width, int height, int *mask, int kernel_size)
+{
+}
+
+int *closing_opening(int *img, int width, int height, int kernel_size = 9)
+{
+    int ks2 = kernel_size / 2;
+    for (int x = 0; x < width; x++)
+        for (int y = 0; y < width; y++)
+        {
+            int v = ;
+            for (int i = -ks2; i <= ks2; i++)
+                for (int j = -ks2; j <= ks2; j++)
+                {
+                    int cx = x + i;
+                    int cy = y + j;
+                    int ci = i + ks2;
+                    int cj = j + ks2;
+                    v += kernel[cj * kernel_size + ci] * greyscale_image[cy * width + cx];
+                }
+        }
+}
 
 void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
 {
@@ -84,6 +131,12 @@ void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int
 
     // 4.Closing/opening with disk or rectangle
     auto close_open = closing_opening(diff, width, height);
+    auto mask = create_mask();
+
+    auto open = opening(diff, width, height, mask, kernel_size);
+    auto close = closing(open, width, height, mask, kernel_size);
+
+    free(mask);
 
     // 5.1.Thresh image
     // 5.2.Lakes
