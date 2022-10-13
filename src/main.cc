@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
+        kernel_cxx();
         std::cerr << "Usage: ./main image_ref.png image1.png [imageN.png]" << std::endl;
         return 1;
     }
