@@ -4,11 +4,15 @@
 #include <cmath>
 #include <numbers>
 
+#include "test.cuh"
+
+
 int *greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height)
 {
     int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
     for (int x = 0; x < width; x++)
         for (int y = 0; y < height; y++)
+            // TODO: Tenter de changer les coeff de conversion
             ret[x + y * width] = static_cast<int>(image[y][x].red + image[y][x].green + image[y][x].blue) / 3;
     return ret;
 }
@@ -75,9 +79,10 @@ enum mask_type
     // disk,
 };
 
-int *create_mask(int kernel_size = 11, enum mask_type type = square)
+int *create_mask(int kernel_size, enum mask_type type = square)
 {
-    int *ret;
+    int *ret = static_cast<int*>(std::calloc(kernel_size * kernel_size, sizeof(int)));
+
     switch (type)
     {
     case square:
@@ -91,21 +96,16 @@ int *create_mask(int kernel_size = 11, enum mask_type type = square)
     return ret;
 }
 
-int *opening(int *img, int width, int height, int *mask, int kernel_size)
+template<typename T> 
+int *kernel_func(int *img, int width, int height, int *kernel, int kernel_size, T func)
 {
-}
+    int *ret = static_cast<int*>(std::calloc(width * height, sizeof(int)));
 
-int *closing(int *img, int width, int height, int *mask, int kernel_size)
-{
-}
-
-int *closing_opening(int *img, int width, int height, int kernel_size = 9)
-{
     int ks2 = kernel_size / 2;
     for (int x = 0; x < width; x++)
         for (int y = 0; y < width; y++)
         {
-            int v = ;
+            int v = kernel[ks2 * kernel_size + ks2] * img[y * width + x];
             for (int i = -ks2; i <= ks2; i++)
                 for (int j = -ks2; j <= ks2; j++)
                 {
@@ -113,9 +113,38 @@ int *closing_opening(int *img, int width, int height, int kernel_size = 9)
                     int cy = y + j;
                     int ci = i + ks2;
                     int cj = j + ks2;
-                    v += kernel[cj * kernel_size + ci] * greyscale_image[cy * width + cx];
+                    v = func(kernel[cj * kernel_size + ci] * img[cy * width + cx], v);
                 }
+            ret[y * width + x] = v;
         }
+
+    free(img);
+    
+    return ret;
+}
+
+int *opening(int *img, int width, int height, int *kernel, int kernel_size)
+{
+    auto lambda = [](int a, int b){ return a < b ? b : a;};
+    return kernel_func(img, width, height, kernel, kernel_size, lambda);
+}
+
+int *closing(int *img, int width, int height, int *kernel, int kernel_size)
+{
+    auto lambda = [](int a, int b){ return a < b ? a : b;};
+    return kernel_func(img, width, height, kernel, kernel_size, lambda);
+}
+
+int *closing_opening(int *img, int width, int height, int kernel_size=11)
+{
+    auto mask = create_mask(kernel_size);
+
+    auto open = opening(img, width, height, mask, kernel_size);
+    auto close = closing(open, width, height, mask, kernel_size);
+
+    std::free(mask);
+
+    return close;
 }
 
 void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
@@ -130,13 +159,9 @@ void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int
     auto diff = compute_difference(ref_smoothed, modified_smoothed, width, height);
 
     // 4.Closing/opening with disk or rectangle
-    auto close_open = closing_opening(diff, width, height);
-    auto mask = create_mask();
+    auto co_img = closing_opening(diff, width, height);
+    (void) co_img;
 
-    auto open = opening(diff, width, height, mask, kernel_size);
-    auto close = closing(open, width, height, mask, kernel_size);
-
-    free(mask);
 
     // 5.1.Thresh image
     // 5.2.Lakes
