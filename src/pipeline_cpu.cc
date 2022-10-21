@@ -5,6 +5,8 @@
 #include <numbers>
 #include <set>
 
+#include "debug.hh"
+
 namespace cpu::internal
 {
     int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height)
@@ -42,19 +44,30 @@ namespace cpu::internal
         int *ret = static_cast<int *>(std::calloc(width * height, sizeof(int)));
 
         int ks2 = kernel_size / 2;
-        for (int x = ks2; x < width - ks2; x++)
-            for (int y = ks2; y < height - ks2; y++)
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
             {
                 int v = kernel[ks2 * kernel_size + ks2] * img[y * width + x];
+
                 for (int i = -ks2; i <= ks2; i++)
+                {
+                    int cx = x + i;
+                    if (cx < 0 || cx >= width)
+                        continue;
+
                     for (int j = -ks2; j <= ks2; j++)
                     {
-                        int cx = x + i;
                         int cy = y + j;
+                        if (cy < 0 || cy >= height)
+                            continue;
+
                         int ci = i + ks2;
                         int cj = j + ks2;
+
                         v = func(kernel[cj * kernel_size + ci] * img[cy * width + cx], v);
                     }
+                }
+
                 ret[y * width + x] = v;
             }
 
@@ -77,18 +90,23 @@ namespace cpu::internal
         return kernel_func(img, width, height, kernel, kernel_size, lambda);
     }
 
-    int *closing_opening(int *img, int width, int height, int kernel_size_opening = 11, int kernel_size_closing = 7)
+    int *closing_opening(int *img, int width, int height, int kernel_size_opening, int kernel_size_closing)
     {
         // Closing
         auto mask = create_mask(kernel_size_closing);
+        display_img(img, width, height);
         auto a = erosion(img, width, height, mask, kernel_size_closing);
+        display_img(a, width, height);
         auto b = dilatation(a, width, height, mask, kernel_size_closing);
+        display_img(b, width, height);
         std::free(mask);
 
         // Opening
         mask = create_mask(kernel_size_opening);
         auto c = dilatation(b, width, height, mask, kernel_size_opening);
+        display_img(c, width, height);
         auto ret = erosion(c, width, height, mask, kernel_size_opening);
+        display_img(ret, width, height);
         std::free(mask);
 
         return ret;

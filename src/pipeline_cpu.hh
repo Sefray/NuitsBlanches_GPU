@@ -20,6 +20,8 @@ namespace cpu
         int *create_mask(int kernel_size, enum mask_type type = square);
         int *dilatation(int *img, int width, int height, int *kernel, int kernel_size);
         int *erosion(int *img, int width, int height, int *kernel, int kernel_size);
+        int *closing_opening(int *img, int width, int height, int kernel_size_opening = 11, int kernel_size_closing = 7);
+      
         void binary_image(int *image, int width, int height, int threshold);
         std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel = 12);
     }

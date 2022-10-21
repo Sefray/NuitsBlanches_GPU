@@ -13,6 +13,8 @@ add_library(lib)
 target_compile_features(lib PUBLIC cxx_std_20)
 
 target_sources(lib PRIVATE
+    src/debug.cc
+    src/debug.hh
     src/pipeline_cpu.cc
     src/pipeline_cpu.hh
     src/test.cu
@@ -44,7 +46,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(test
-  tests/cpu_pipeline.cc
+  tests/test_cpu.cc
 )
 
 target_link_libraries(test GTest::gtest_main lib PNG::PNG)
