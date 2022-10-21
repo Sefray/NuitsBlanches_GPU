@@ -5,8 +5,149 @@
 #include <numbers>
 #include <set>
 
+namespace cpu::internal
+{
+    int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height)
+    {
+        int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
+
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                ret[y * width + x] = std::abs(ref_smoothed[y * width + x] - modified_smoothed[y * width + x]);
+
+        std::free(modified_smoothed);
+
+        return ret;
+    }
+
+    int *create_mask(int kernel_size, enum mask_type type)
+    {
+        int *ret = static_cast<int *>(std::calloc(kernel_size * kernel_size, sizeof(int)));
+
+        switch (type)
+        {
+        case square:
+            for (int x = 0; x < kernel_size; x++)
+                for (int y = 0; y < kernel_size; y++)
+                    ret[y * kernel_size + x] = 1;
+            break;
+        }
+
+        return ret;
+    }
+
+    template <typename T>
+    int *kernel_func(int *img, int width, int height, int *kernel, int kernel_size, T func)
+    {
+        int *ret = static_cast<int *>(std::calloc(width * height, sizeof(int)));
+
+        int ks2 = kernel_size / 2;
+        for (int x = ks2; x < width - ks2; x++)
+            for (int y = ks2; y < height - ks2; y++)
+            {
+                int v = kernel[ks2 * kernel_size + ks2] * img[y * width + x];
+                for (int i = -ks2; i <= ks2; i++)
+                    for (int j = -ks2; j <= ks2; j++)
+                    {
+                        int cx = x + i;
+                        int cy = y + j;
+                        int ci = i + ks2;
+                        int cj = j + ks2;
+                        v = func(kernel[cj * kernel_size + ci] * img[cy * width + cx], v);
+                    }
+                ret[y * width + x] = v;
+            }
+
+        std::free(img);
+
+        return ret;
+    }
+
+    int *dilatation(int *img, int width, int height, int *kernel, int kernel_size)
+    {
+        auto lambda = [](int a, int b)
+        { return a < b ? b : a; };
+        return kernel_func(img, width, height, kernel, kernel_size, lambda);
+    }
+
+    int *erosion(int *img, int width, int height, int *kernel, int kernel_size)
+    {
+        auto lambda = [](int a, int b)
+        { return a < b ? a : b; };
+        return kernel_func(img, width, height, kernel, kernel_size, lambda);
+    }
+
+    int *closing_opening(int *img, int width, int height, int kernel_size_opening = 11, int kernel_size_closing = 7)
+    {
+        // Closing
+        auto mask = create_mask(kernel_size_closing);
+        auto a = erosion(img, width, height, mask, kernel_size_closing);
+        auto b = dilatation(a, width, height, mask, kernel_size_closing);
+        std::free(mask);
+
+        // Opening
+        mask = create_mask(kernel_size_opening);
+        auto c = dilatation(b, width, height, mask, kernel_size_opening);
+        auto ret = erosion(c, width, height, mask, kernel_size_opening);
+        std::free(mask);
+
+        return ret;
+    }
+
+    void binary_image(int *image, int width, int height, int threshold)
+    {
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                image[y * width + x] = image[y * width + x] < threshold ? -1 : 0;
+    }
+
+    struct Box
+    {
+        int x;
+        int y;
+        int width;
+        int height;
+        int size;
+    };
+
+    void rec_lakes(int *image, int x, int y, int width, int height, int value, Box &box)
+    {
+        if (image[y * width + height] == 0)
+        {
+            image[y * width + height] = value;
+            rec_lakes(image, x - 1, y, width, height, value, box);
+            rec_lakes(image, x + 1, y, width, height, value, box);
+            rec_lakes(image, x - 1, y + 1, width, height, value, box);
+
+            box.x = std::min(box.x, x);
+            box.y = std::min(box.y, y);
+            box.height = std::max(y - box.y, box.height);
+            box.width = std::max(x - box.x, box.width);
+            box.size += 1;
+        }
+    }
+
+    std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel)
+    {
+        std::set<std::vector<int>> boxes;
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < width; y++)
+                if (image[y * width + x] == 0)
+                {
+                    Box box = {.x = x, .y = y, .width = 1, .height = 1, .size = 0};
+                    rec_lakes(image, x, y, width, height, y * width + x, box);
+                    if (box.size > minimum_pixel)
+                        boxes.insert({box.x, box.y, box.width, box.height});
+                }
+
+        return boxes;
+    }
+}
+
 namespace cpu
 {
+    using namespace cpu::internal;
+
     int *greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height)
     {
         int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
@@ -54,144 +195,13 @@ namespace cpu
                 ret[x + y * width] = static_cast<int>(v);
             }
 
-        free(kernel);
-        free(greyscale_image);
+        std::free(kernel);
+        std::free(greyscale_image);
 
         return ret;
     }
 
-    int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height)
-    {
-        int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
-
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                ret[y * width + x] = std::abs(ref_smoothed[y * width + x] - modified_smoothed[y * width + x]);
-
-        free(modified_smoothed);
-
-        return ret;
-    }
-
-    enum mask_type
-    {
-        square,
-        // disk,
-    };
-
-    int *create_mask(int kernel_size, enum mask_type type = square)
-    {
-        int *ret = static_cast<int *>(std::calloc(kernel_size * kernel_size, sizeof(int)));
-
-        switch (type)
-        {
-        case square:
-            ret = static_cast<int *>(std::malloc(sizeof(int) * kernel_size * kernel_size));
-            for (int x = 0; x < kernel_size; x++)
-                for (int y = 0; y < kernel_size; y++)
-                    ret[y * kernel_size + x] = 1;
-            break;
-        }
-
-        return ret;
-    }
-
-    template <typename T>
-    int *kernel_func(int *img, int width, int height, int *kernel, int kernel_size, T func)
-    {
-        int *ret = static_cast<int *>(std::calloc(width * height, sizeof(int)));
-
-        int ks2 = kernel_size / 2;
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-            {
-                int v = kernel[ks2 * kernel_size + ks2] * img[y * width + x];
-                for (int i = -ks2; i <= ks2; i++)
-                    for (int j = -ks2; j <= ks2; j++)
-                    {
-                        int cx = x + i;
-                        int cy = y + j;
-                        int ci = i + ks2;
-                        int cj = j + ks2;
-                        v = func(kernel[cj * kernel_size + ci] * img[cy * width + cx], v);
-                    }
-                ret[y * width + x] = v;
-            }
-
-        free(img);
-
-        return ret;
-    }
-
-    int *dilatation(int *img, int width, int height, int *kernel, int kernel_size)
-    {
-        auto lambda = [](int a, int b)
-        { return a < b ? b : a; };
-        return kernel_func(img, width, height, kernel, kernel_size, lambda);
-    }
-
-    int *erosion(int *img, int width, int height, int *kernel, int kernel_size)
-    {
-        auto lambda = [](int a, int b)
-        { return a < b ? a : b; };
-        return kernel_func(img, width, height, kernel, kernel_size, lambda);
-    }
-
-    int *closing_opening(int *img, int width, int height, int kernel_size_opening = 11, int kernel_size_closing = 7)
-    {
-
-        // Closing
-        auto mask = create_mask(kernel_size);
-        auto a = erosion(img, width, height, mask, kernel_size);
-        auto b = dilatation(a, width, height, mask, kernel_size);
-        std::free(mask);
-
-        // Opening
-        auto mask = create_mask(kernel_size);
-        auto c = dilatation(b, width, height, mask, kernel_size);
-        auto ret = erosion(c, width, height, mask, kernel_size);
-        std::free(mask);
-
-        return ret;
-    }
-
-    void binary_image(int *image, int width, int height, int threshold)
-    {
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < width; y++)
-                image[y * width + x] = image[y * width + x] < threshold ? -1 : 0;
-    }
-
-    struct Box
-    {
-        int x;
-        int y;
-        int width;
-        int height;
-    };
-
-    void rec_lakes(int *image, int x, int y, int width, int height, int value)
-    {
-        if (image[y * width + height] == 0)
-        {
-            image[y * width + height] = value;
-            rec_lakes(image, x - 1, y, width, height, value);
-            rec_lakes(image, x + 1, y, width, height, value);
-            rec_lakes(image, x - 1, y + 1, width, height, value);
-        }
-    }
-
-    std::set<Box> lakes(int *image, int width, int height, int minimum_pixel = 30)
-    {
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < width; y++)
-                if (image[y * width + x] == 0)
-                    rec_lakes(image, x, y, width, height, y * width + x);
-
-        
-    }
-
-    void pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
+    std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height)
     {
         // 1.Greyscale
         auto modified_greyscale = greyscale(modified, width, height);
@@ -211,20 +221,6 @@ namespace cpu
         // 5.2.Lakes
         auto components = lakes(img, width, height);
         // 6.Output Json
-        /*
-        Json format example
-        {
-            "input-0001.jpg" : [
-                [0, 0, 10, 10],
-                [15, 15, 42, 42]
-            ],
-            "input-0002.jpg" : [],
-            "input-0003.jpg" : [
-                [0, 0, 10, 10],
-                [15, 15, 42, 42],
-                [51, 42, 69, 99]
-            ]
-        }
-        */
+        return components;
     }
 }
