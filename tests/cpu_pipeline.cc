@@ -23,7 +23,7 @@ void check_img(int *out, int *ref, int width, int height)
       EXPECT_EQ(out[y * width + x], ref[y * width + x]);
 }
 
-TEST(Opening_Closing, erosion_single)
+TEST(Opening_Closing, erosion_single_square)
 {
   int size_mask = 3;
   auto mask = create_mask(size_mask);
@@ -42,6 +42,87 @@ TEST(Opening_Closing, erosion_single)
                0, 0, 0, 0, 0,
                0, 0, 1, 0, 0,
                0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0};
+
+  check_img(ref, out, img_width, img_height);
+
+  std::free(mask);
+  std::free(out);
+}
+
+TEST(Opening_Closing, erosion_two)
+{
+  int size_mask = 3;
+  auto mask = create_mask(size_mask);
+
+  int img_width = 5;
+  int img_height = 5;
+  int ori[] = {1, 1, 1, 0, 0,
+               1, 1, 1, 0, 0,
+               1, 1, 1, 1, 1,
+               0, 0, 1, 1, 1,
+               0, 0, 1, 1, 1};
+
+  auto out = erosion(malloc_img(ori, img_width, img_height), img_width, img_height, mask, size_mask);
+
+  int ref[] = {0, 0, 0, 0, 0,
+               0, 1, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 1, 0,
+               0, 0, 0, 0, 0};
+
+  check_img(ref, out, img_width, img_height);
+
+  std::free(mask);
+  std::free(out);
+}
+
+TEST(Opening_Closing, dilatation_single_square)
+{
+  int size_mask = 3;
+  auto mask = create_mask(size_mask);
+
+  int img_width = 5;
+  int img_height = 5;
+  int ori[] = {0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 1, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0};
+
+  auto out = dilatation(malloc_img(ori, img_width, img_height), img_width, img_height, mask, size_mask);
+
+  int ref[] = {0, 0, 0, 0, 0,
+               0, 1, 1, 1, 0,
+               0, 1, 1, 1, 0,
+               0, 1, 1, 1, 0,
+               0, 0, 0, 0, 0};
+
+  check_img(ref, out, img_width, img_height);
+
+  std::free(mask);
+  std::free(out);
+}
+
+TEST(Opening_Closing, dilatation_two_square)
+{
+  int size_mask = 3;
+  auto mask = create_mask(size_mask);
+
+  int img_width = 5;
+  int img_height = 5;
+  int ori[] = {0, 0, 0, 0, 0,
+               0, 1, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 1, 0,
+               0, 0, 0, 0, 0};
+
+  auto out = dilatation(malloc_img(ori, img_width, img_height), img_width, img_height, mask, size_mask);
+
+  int ref[] = {0, 0, 0, 0, 0,
+               0, 1, 1, 0, 0,
+               0, 1, 1, 1, 0,
+               0, 0, 1, 1, 0,
                0, 0, 0, 0, 0};
 
   check_img(ref, out, img_width, img_height);
