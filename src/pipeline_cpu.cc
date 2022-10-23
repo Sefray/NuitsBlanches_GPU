@@ -94,19 +94,14 @@ namespace cpu::internal
     {
         // Closing
         auto mask = create_mask(kernel_size_closing);
-        display_img(img, width, height);
         auto a = erosion(img, width, height, mask, kernel_size_closing);
-        display_img(a, width, height);
         auto b = dilatation(a, width, height, mask, kernel_size_closing);
-        display_img(b, width, height);
         std::free(mask);
 
         // Opening
         mask = create_mask(kernel_size_opening);
         auto c = dilatation(b, width, height, mask, kernel_size_opening);
-        display_img(c, width, height);
         auto ret = erosion(c, width, height, mask, kernel_size_opening);
-        display_img(ret, width, height);
         std::free(mask);
 
         return ret;
@@ -116,7 +111,7 @@ namespace cpu::internal
     {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                image[y * width + x] = image[y * width + x] < threshold ? -1 : 0;
+                image[y * width + x] = image[y * width + x] < threshold ? 0 : 1;
     }
 
     struct Box
@@ -128,19 +123,23 @@ namespace cpu::internal
         int size;
     };
 
-    void rec_lakes(int *image, int x, int y, int width, int height, int value, Box &box)
+    void rec_lakes(int *image, int x, int y, int width, int height, Box &box)
     {
-        if (image[y * width + height] == 0)
+        if (!((0 <= x && x < width) && (0 <= y && y < height)))
+            return;
+
+        if (image[y * width + x])
         {
-            image[y * width + height] = value;
-            rec_lakes(image, x - 1, y, width, height, value, box);
-            rec_lakes(image, x + 1, y, width, height, value, box);
-            rec_lakes(image, x - 1, y + 1, width, height, value, box);
+            image[y * width + x] = 0;
+            rec_lakes(image, x - 1, y, width, height, box);
+            rec_lakes(image, x + 1, y, width, height, box);
+            rec_lakes(image, x, y + 1, width, height, box);
+            rec_lakes(image, x, y - 1, width, height, box);
 
             box.x = std::min(box.x, x);
             box.y = std::min(box.y, y);
-            box.height = std::max(y - box.y, box.height);
-            box.width = std::max(x - box.x, box.width);
+            box.height = std::max(y - box.y + 1, box.height);
+            box.width = std::max(x - box.x + 1, box.width);
             box.size += 1;
         }
     }
@@ -148,12 +147,12 @@ namespace cpu::internal
     std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel)
     {
         std::set<std::vector<int>> boxes;
-        for (int x = 0; x < width; x++)
-            for (int y = 0; y < width; y++)
-                if (image[y * width + x] == 0)
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                if (image[y * width + x])
                 {
                     Box box = {.x = x, .y = y, .width = 1, .height = 1, .size = 0};
-                    rec_lakes(image, x, y, width, height, y * width + x, box);
+                    rec_lakes(image, x, y, width, height, box);
                     if (box.size > minimum_pixel)
                         boxes.insert({box.x, box.y, box.width, box.height});
                 }
