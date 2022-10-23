@@ -361,3 +361,28 @@ TEST(Connectic_component, one_complexe)
 
   check_lakes(ref, out);
 }
+
+TEST(Binary, small_cross)
+{
+  int threshold = 5;
+
+  int width = 5;
+  int height = 5;
+  int img[] = {
+      1, 1, 1, 1, 1,
+      1, 1, 6, 1, 1,
+      1, 7, 9, 8, 1,
+      1, 1, 8, 1, 0,
+      1, 1, 1, 2, 1};
+
+  binary_image(img, width, height, threshold);
+
+  int ref[] = {
+      0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0,
+      0, 1, 1, 1, 0,
+      0, 0, 1, 0, 0,
+      0, 0, 0, 0, 0};
+
+  check_img(img, ref, width, height);
+}
