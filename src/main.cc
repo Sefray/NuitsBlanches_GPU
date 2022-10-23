@@ -47,5 +47,5 @@ int main(int argc, char *argv[])
     }
     std::free(ref_smoothed);
 
-    std::cout << ret.dump(1) << std::endl;
+    std::cout << ret.dump(2) << std::endl;
 }

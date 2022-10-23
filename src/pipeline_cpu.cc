@@ -185,10 +185,10 @@ namespace cpu::internal
                     image[x + y * width] = cl;
 
                     // Union
-                    if (y - 1 >= 0 && image[x + (y - 1) * width] && std::abs(image[x + (y - 1) * width]) != std::abs(cl))
-                        image[image[x + (y - 1) * width] - 2] = std::abs(cl);
-                    if (x - 1 >= 0 && image[x - 1 + y * width] && std::abs(image[x - 1 + y * width]) != std::abs(cl))
-                        image[image[x - 1 + y * width] - 2] = std::abs(cl);
+                    if (y - 1 >= 0 && nl && nl != std::abs(cl))
+                        image[nl - 2] = std::abs(cl);
+                    if (x - 1 >= 0 && ol && ol != std::abs(cl))
+                        image[ol - 2] = std::abs(cl);
                 }
 
         return labbeleds;
@@ -243,6 +243,9 @@ namespace cpu::internal
     {
         auto labbeleds = compute_union(image, width, height);
         auto ret = compute_find(image, width, height, labbeleds, minimum_pixel);
+
+        std::free(image);
+
         return ret;
     }
 }
