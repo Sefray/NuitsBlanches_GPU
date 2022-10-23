@@ -228,7 +228,7 @@ TEST(Closing_Opening, opening5_closing3_hard)
   std::free(out);
 }
 
-void check_lakes(std::set<std::vector<int>> &ref, std::set<std::vector<int>> &out)
+void check_connected_components(std::set<std::vector<int>> &ref, std::set<std::vector<int>> &out)
 {
   ASSERT_EQ(ref.size(), out.size());
 
@@ -264,13 +264,13 @@ TEST(Connectic_component, small_one_no_bounderies)
 
   int minimum_pixel = 0;
 
-  auto out = lakes(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
   };
 
-  check_lakes(ref, out);
+  check_connected_components(ref, out);
 }
 
 TEST(Connectic_component, small_one_no_bounderies_holl)
@@ -286,13 +286,13 @@ TEST(Connectic_component, small_one_no_bounderies_holl)
 
   int minimum_pixel = 0;
 
-  auto out = lakes(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
   };
 
-  check_lakes(ref, out);
+  check_connected_components(ref, out);
 }
 
 TEST(Connectic_component, small_two_no_bounderies)
@@ -308,14 +308,14 @@ TEST(Connectic_component, small_two_no_bounderies)
 
   int minimum_pixel = 0;
 
-  auto out = lakes(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 1, 3},
       {3, 1, 1, 3},
   };
 
-  check_lakes(ref, out);
+  check_connected_components(ref, out);
 }
 
 TEST(Connectic_component, small_full)
@@ -331,13 +331,13 @@ TEST(Connectic_component, small_full)
 
   int minimum_pixel = 0;
 
-  auto out = lakes(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {0, 0, 5, 5},
   };
 
-  check_lakes(ref, out);
+  check_connected_components(ref, out);
 }
 
 TEST(Connectic_component, one_complexe)
@@ -353,13 +353,13 @@ TEST(Connectic_component, one_complexe)
 
   int minimum_pixel = 0;
 
-  auto out = lakes(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 7, 3},
   };
 
-  check_lakes(ref, out);
+  check_connected_components(ref, out);
 }
 
 TEST(Binary, small_cross)

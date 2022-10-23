@@ -4,6 +4,7 @@
 #include <cmath>
 #include <numbers>
 #include <set>
+#include <map>
 
 #include "debug.hh"
 
@@ -116,48 +117,133 @@ namespace cpu::internal
 
     struct Box
     {
-        int x;
-        int y;
-        int width;
-        int height;
+        int xmin;
+        int ymin;
+        int xmax;
+        int ymax;
+
         int size;
     };
 
-    void rec_lakes(int *image, int x, int y, int width, int height, Box &box)
+    // void rec_lakes(int *image, int x, int y, int width, int height, Box &box)
+    // {
+    //     if (!((0 <= x && x < width) && (0 <= y && y < height)))
+    //         return;
+
+    //     if (image[y * width + x])
+    //     {
+    //         image[y * width + x] = 0;
+    //         rec_lakes(image, x - 1, y, width, height, box);
+    //         rec_lakes(image, x + 1, y, width, height, box);
+    //         rec_lakes(image, x, y + 1, width, height, box);
+    //         rec_lakes(image, x, y - 1, width, height, box);
+
+    //         box.x = std::min(box.x, x);
+    //         box.y = std::min(box.y, y);
+    //         box.height = std::max(y - box.y + 1, box.height);
+    //         box.width = std::max(x - box.x + 1, box.width);
+    //         box.size += 1;
+    //     }
+    // }
+
+    // std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel)
+    // {
+    //     std::set<std::vector<int>> boxes;
+    //     for (int y = 0; y < height; y++)
+    //         for (int x = 0; x < width; x++)
+    //             if (image[y * width + x])
+    //             {
+    //                 Box box = {.x = x, .y = y, .width = 1, .height = 1, .size = 0};
+    //                 rec_lakes(image, x, y, width, height, box);
+    //                 if (box.size > minimum_pixel)
+    //                     boxes.insert({box.x, box.y, box.width, box.height});
+    //             }
+
+    //     return boxes;
+    // }
+
+    int compute_union(int *image, int width, int height)
     {
-        if (!((0 <= x && x < width) && (0 <= y && y < height)))
-            return;
-
-        if (image[y * width + x])
-        {
-            image[y * width + x] = 0;
-            rec_lakes(image, x - 1, y, width, height, box);
-            rec_lakes(image, x + 1, y, width, height, box);
-            rec_lakes(image, x, y + 1, width, height, box);
-            rec_lakes(image, x, y - 1, width, height, box);
-
-            box.x = std::min(box.x, x);
-            box.y = std::min(box.y, y);
-            box.height = std::max(y - box.y + 1, box.height);
-            box.width = std::max(x - box.x + 1, box.width);
-            box.size += 1;
-        }
-    }
-
-    std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel)
-    {
-        std::set<std::vector<int>> boxes;
-        for (int y = 0; y < height; y++)
-            for (int x = 0; x < width; x++)
-                if (image[y * width + x])
+        int labbeleds = 0;
+        for (int y = 1; y < height; y++)
+            for (int x = 1; x < height; x++)
+                if (image[x + y * width] == 1)
                 {
-                    Box box = {.x = x, .y = y, .width = 1, .height = 1, .size = 0};
-                    rec_lakes(image, x, y, width, height, box);
-                    if (box.size > minimum_pixel)
-                        boxes.insert({box.x, box.y, box.width, box.height});
+                    labbeleds++;
+
+                    int nl = std::abs(image[x + (y - 1) * width]);
+                    int ol = std::abs(image[x - 1 + y * width]);
+
+                    int cl;
+                    if (nl && ol)
+                        cl = std::min(ol, nl);
+                    else if (nl || ol)
+                        cl = std::max(ol, nl);
+                    else
+                        cl = -(x + y * width + 2);
+
+                    image[x + y * width] = cl;
+
+                    // Union
+                    image[x + (y - 1) * width] = std::min(std::min(std::abs(cl), ol), nl);
+                    image[x - 1 + y * width] = std::min(std::min(std::abs(cl), ol), nl);
                 }
 
-        return boxes;
+        return labbeleds;
+    }
+
+    std::set<std::vector<int>> compute_find(int *image, int width, int height, int labels, int minimum_pixel)
+    {
+        std::map<int, Box> boxes;
+
+        int l;
+        for (int y = 1; y < height && labels; y++)
+            for (int x = 1; x < height && labels; x++)
+            {
+                if ((l = image[x + y * width]))
+                {
+                    while (l > 0)
+                        l = image[l - 2];
+
+                    if (boxes.find(l) != boxes.end())
+                    {
+                        auto &box = boxes.at(l);
+
+                        box.xmin = std::min(x, box.xmin);
+                        box.ymin = std::min(y, box.ymin);
+                        box.xmax = std::max(x, box.xmax);
+                        box.ymax = std::max(y, box.ymax);
+
+                        box.size++;
+                    }
+                    else
+                    {
+                        Box box = {.xmin = x, .ymin = y, .xmax = x, .ymax = y, .size = 1};
+                        boxes[l] = box;
+                    }
+
+                    labels--;
+                }
+            }
+
+        std::set<std::vector<int>> ret;
+
+        for (auto &box : boxes)
+        {
+            if (box.second.size > minimum_pixel)
+                ret.insert({box.second.xmin, box.second.ymin, box.second.xmax - box.second.xmin + 1, box.second.ymax - box.second.ymin + 1});
+        }
+
+        return ret;
+    }
+
+    std::set<std::vector<int>> get_connected_components(int *image, int width, int height, int minimum_pixel)
+    {
+        display_img(image, width, height);
+        auto labbeleds = compute_union(image, width, height);
+        display_img(image, width, height);
+        auto ret = compute_find(image, width, height, labbeleds, minimum_pixel);
+        return ret;
     }
 }
 
@@ -236,7 +322,7 @@ namespace cpu
         auto threshold = 10;
         binary_image(img, width, height, threshold);
         // 5.2.Lakes
-        auto components = lakes(img, width, height);
+        auto components = get_connected_components(img, width, height);
         // 6.Output Json
         return components;
     }

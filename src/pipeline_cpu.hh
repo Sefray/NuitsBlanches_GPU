@@ -21,9 +21,10 @@ namespace cpu
         int *dilatation(int *img, int width, int height, int *kernel, int kernel_size);
         int *erosion(int *img, int width, int height, int *kernel, int kernel_size);
         int *closing_opening(int *img, int width, int height, int kernel_size_opening = 11, int kernel_size_closing = 7);
-      
+
         void binary_image(int *image, int width, int height, int threshold);
-        std::set<std::vector<int>> lakes(int *image, int width, int height, int minimum_pixel = 12);
+
+        std::set<std::vector<int>> get_connected_components(int *image, int width, int height, int minimum_pixel = 12);
     }
 
     std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height);
