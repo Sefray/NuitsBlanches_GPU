@@ -256,8 +256,7 @@ namespace cpu
         int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                // TODO: Tenter de changer les coeff de conversion
-                ret[x + y * width] = static_cast<int>(image[y][x].red + image[y][x].green + image[y][x].blue) / 3;
+                ret[x + y * width] = static_cast<int>(0.2126 * image[y][x].red + 0.7152 * image[y][x].green + 0.0722 * image[y][x].blue);
         return ret;
     }
 
@@ -325,9 +324,10 @@ namespace cpu
         auto img = closing_opening(diff, width, height);
 #ifndef NDEBUG
         save_img(img, width, height, "closed_opened.png");
+        compute_and_display_histogramme(img, width, height);
 #endif
         // 5.1.Thresh image
-        auto threshold = 10;
+        auto threshold = 30;
         binary_image(img, width, height, threshold);
 #ifndef NDEBUG
         save_img(img, width, height, "binary.png", 255);

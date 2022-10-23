@@ -3,11 +3,12 @@ project (GPGPU CUDA CXX)
 
 set(CMAKE_CUDA_ARCHITECTURES "61")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Werror -Wextra -pedantic -O3")
 
 find_package(PNG REQUIRED)
 find_package(nlohmann_json 3.10.5 REQUIRED)
+find_package(benchmark REQUIRED)
 
 add_library(lib)
 target_compile_features(lib PUBLIC cxx_std_20)
@@ -53,3 +54,7 @@ target_link_libraries(test GTest::gtest_main lib PNG::PNG)
 
 
 ### Bench ###
+
+add_executable(bench bench/bench.cc)
+target_compile_features(bench PUBLIC cxx_std_20)
+target_link_libraries(bench PRIVATE lib benchmark::benchmark PNG::PNG)

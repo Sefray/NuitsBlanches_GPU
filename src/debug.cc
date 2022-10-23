@@ -24,3 +24,20 @@ void save_img(int *img, int width, int height, std::string filename, int factor)
 
     image.write(filename);
 }
+
+void compute_and_display_histogramme(int *img, int width, int height)
+{
+    int histo[255] = {0};
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+            histo[img[y * width + x]]++;
+
+    float nb_pixel = width * height;
+    float cumul = 0;
+    for (int i = 0; i < 255; i++)
+    {
+        cumul += histo[i] / nb_pixel;
+        printf("%03d -> %10f     cumul = %10f\n", i, histo[i] / nb_pixel, cumul);
+    }
+    printf("\n");
+}

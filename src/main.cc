@@ -27,24 +27,9 @@ int main(int argc, char *argv[])
     {
         png::image<png::rgb_pixel> modified(argv[i]);
         auto components = cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height);
-
-        /*
-        Json format example
-        {
-            "input-0001.jpg" : [
-                [0, 0, 10, 10],
-                [15, 15, 42, 42]
-            ],
-            "input-0002.jpg" : [],
-            "input-0003.jpg" : [
-                [0, 0, 10, 10],
-                [15, 15, 42, 42],
-                [51, 42, 69, 99]
-            ]
-        }
-        */
         ret[argv[i]] = components;
     }
+
     std::free(ref_smoothed);
 
     std::cout << ret.dump(2) << std::endl;
