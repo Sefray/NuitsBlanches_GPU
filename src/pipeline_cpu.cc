@@ -165,14 +165,14 @@ namespace cpu::internal
     int compute_union(int *image, int width, int height)
     {
         int labbeleds = 0;
-        for (int y = 1; y < height; y++)
-            for (int x = 1; x < height; x++)
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
                 if (image[x + y * width] == 1)
                 {
                     labbeleds++;
 
-                    int nl = std::abs(image[x + (y - 1) * width]);
-                    int ol = std::abs(image[x - 1 + y * width]);
+                    int nl = y - 1 >= 0 ? std::abs(image[x + (y - 1) * width]) : 0;
+                    int ol = x - 1 >= 0 ? std::abs(image[x - 1 + y * width]) : 0;
 
                     int cl;
                     if (nl && ol)
@@ -185,8 +185,10 @@ namespace cpu::internal
                     image[x + y * width] = cl;
 
                     // Union
-                    image[x + (y - 1) * width] = std::min(std::min(std::abs(cl), ol), nl);
-                    image[x - 1 + y * width] = std::min(std::min(std::abs(cl), ol), nl);
+                    if (y - 1 >= 0 && image[x + (y - 1) * width] && std::abs(image[x + (y - 1) * width]) != std::abs(cl))
+                        image[image[x + (y - 1) * width] - 2] = std::abs(cl);
+                    if (x - 1 >= 0 && image[x - 1 + y * width] && std::abs(image[x - 1 + y * width]) != std::abs(cl))
+                        image[image[x - 1 + y * width] - 2] = std::abs(cl);
                 }
 
         return labbeleds;
@@ -197,8 +199,8 @@ namespace cpu::internal
         std::map<int, Box> boxes;
 
         int l;
-        for (int y = 1; y < height && labels; y++)
-            for (int x = 1; x < height && labels; x++)
+        for (int y = 0; y < height && labels; y++)
+            for (int x = 0; x < width && labels; x++)
             {
                 if ((l = image[x + y * width]))
                 {
@@ -239,9 +241,7 @@ namespace cpu::internal
 
     std::set<std::vector<int>> get_connected_components(int *image, int width, int height, int minimum_pixel)
     {
-        display_img(image, width, height);
         auto labbeleds = compute_union(image, width, height);
-        display_img(image, width, height);
         auto ret = compute_find(image, width, height, labbeleds, minimum_pixel);
         return ret;
     }
