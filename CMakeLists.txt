@@ -2,9 +2,9 @@ cmake_minimum_required (VERSION 3.14)
 project (GPGPU CUDA CXX)
 
 set(CMAKE_CUDA_ARCHITECTURES "61")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Werror -Wextra -pedantic -O3")
 
 find_package(PNG REQUIRED)
 find_package(nlohmann_json 3.10.5 REQUIRED)
