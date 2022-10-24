@@ -1,59 +1,104 @@
 #include "pipeline.hh"
-
+#include <iostream>
 #include <cstdlib>
 #include <cmath>
 #include <numbers>
 #include <set>
 
 #include "debug.hh"
+#include <err.h>
 
 namespace gpu
 {
-        std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height)
+        int *malloc_and_copy(const int *h, int width, int height)
         {
+                cudaError_t rc = cudaSuccess;
+
+                int *d;
+
+                rc = cudaMalloc((void **)&d, sizeof(int) * width * height);
+                if (rc)
+                        errx(1, "Fail buffer allocation");
+
+                cudaMemcpy(d, h, sizeof(int) * width * height, cudaMemcpyHostToDevice);
+                if (rc)
+                        errx(1, "Fail buffer copy to device");
+
+                return d;
+        }
+
+        void my_cuda_free(int *d)
+        {
+                cudaError_t rc = cudaSuccess;
+                rc = cudaFree(d);
+                if (rc)
+                        errx(1, "Fail to free memory");
+        }
+
+        std::set<std::vector<int>> pipeline(int *d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height)
+        {
+                cudaError_t rc = cudaSuccess;
+
                 // 1.Greyscale
                 auto h_greyscale = cpu::greyscale(h_input, width, height);
-#ifndef NDEBUG
-                save_img(h_greyscale, width, height, "greyscaled.png");
-#endif
 
+                // Buffer Allocation
                 int *d_buffer_A;
-                cudaMalloc(&d_buffer_A, sizeof(int) * width * height);
+                rc = cudaMalloc(&d_buffer_A, sizeof(int) * width * height);
+                if (rc)
+                        errx(1, "Fail buffer allocation for A");
+
                 int *d_buffer_B;
-                cudaMalloc(&d_buffer_B, sizeof(int) * width * height);
+                rc = cudaMalloc(&d_buffer_B, sizeof(int) * width * height);
+                if (rc)
+                        errx(1, "Fail buffer allocation for B");
+                cudaMemset(d_buffer_B, 0, sizeof(int) * width * height);
 
-                cudaMemcpy(d_buffer_A, h_greyscale, sizeof(int) * width * height, cudaMemcpyHostToDevice);
-
-                (void)d_buffer_A;
-                (void)d_buffer_B;
+                rc = cudaMemcpy(d_buffer_A, h_greyscale, sizeof(int) * width * height, cudaMemcpyHostToDevice);
+                if (rc)
+                        errx(1, "Fail buffer copy to device");
 
                 // 2.Smooth (gaussian filter)
-                auto modified_smoothed = smoothing(h_greyscale, width, height);
+                smoothing(d_buffer_A, d_buffer_B, width, height);
+
 #ifndef NDEBUG
-                save_img(modified_smoothed, width, height, "greyscale_smoothed.png");
+                rc = cudaMemcpy(h_greyscale, d_buffer_B, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+                if (rc)
+                        errx(1, "Fail buffer copy to host");
+                save_img(h_greyscale, width, height, "gpu_smoothed.png");
 #endif
+
                 // 3.Difference
-                auto diff = compute_difference(ref_smoothed, modified_smoothed, width, height);
+                compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
+
+                // TMP
+                rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+                if (rc)
+                        errx(1, "Fail buffer copy to host");
+
+                rc = cudaFree(d_buffer_A);
+                if (rc)
+                        errx(1, "Fail to free memory");
+
+                rc = cudaFree(d_buffer_B);
+                if (rc)
+                        errx(1, "Fail to free memory");
 #ifndef NDEBUG
-                save_img(diff, width, height, "diff.png");
+                save_img(h_greyscale, width, height, "gpu_diff.png");
 #endif
+
                 // 4.Closing/opening with disk or rectangle
-                auto img = closing_opening(diff, width, height);
-#ifndef NDEBUG
-                save_img(img, width, height, "closed_opened.png");
-                compute_and_display_histogramme(img, width, height);
-#endif
+                auto img = cpu::closing_opening(h_greyscale, width, height);
+
                 // 5.1.Thresh image
                 auto threshold = 30;
-                binary_image(img, width, height, threshold);
-#ifndef NDEBUG
-                save_img(img, width, height, "binary.png", 255);
-#endif
-                // 5.2.Lakes
-                auto components = get_connected_components(img, width, height);
+                cpu::binary_image(img, width, height, threshold);
 
-                cudaFree(d_buffer_A);
-                cudaFree(d_buffer_B);
+                // 5.2.Lakes
+                auto components = cpu::get_connected_components(img, width, height, 200);
+
+                // TMP
+                std::free(img);
 
                 return components;
         }

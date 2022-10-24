@@ -7,6 +7,8 @@
 namespace cpu
 {
     int *greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height);
+
+    float *init_gaussian_kernel(int kernel_size, float sigma = 1.0f);
     int *smoothing(int *greyscale_image, int width, int height, int kernel_size = 5);
     int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height);
 
@@ -28,11 +30,13 @@ namespace cpu
     std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height);
 }
 
-
 namespace gpu
 {
-    int *smoothing(int *greyscale_image, int width, int height, int kernel_size = 5);
-    int *compute_difference(int *ref_smoothed, int *modified_smoothed, int width, int height);
+    int *malloc_and_copy(const int *h, int width, int height);
+    void my_cuda_free(int *d);
+
+    void smoothing(int *d_in, int *d_out, int width, int height, int kernel_size = 5);
+    void compute_difference(int *d_ref_in, int *d_in, int *d_out, int width, int height);
 
     enum mask_type
     {

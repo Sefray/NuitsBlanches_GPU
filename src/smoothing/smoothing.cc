@@ -5,7 +5,7 @@
 
 namespace cpu
 {
-    float *init_gaussian_kernel(int kernel_size, float sigma = 1.0f)
+    float *init_gaussian_kernel(int kernel_size, float sigma)
     {
         float *ret = static_cast<float *>(std::malloc(sizeof(float) * kernel_size * kernel_size));
         for (int i = 0; i < kernel_size; i++)
@@ -25,7 +25,7 @@ namespace cpu
         float *kernel = init_gaussian_kernel(kernel_size);
         int ks2 = kernel_size / 2;
 
-        int *ret = static_cast<int *>(std::malloc(sizeof(int) * width * height));
+        int *ret = static_cast<int *>(std::calloc(width * height, sizeof(int)));
         for (int x = ks2; x < width - ks2; x++)
             for (int y = ks2; y < height - ks2; y++)
             {

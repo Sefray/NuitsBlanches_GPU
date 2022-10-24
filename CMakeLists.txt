@@ -20,7 +20,9 @@ target_sources(lib PRIVATE
 
     src/greyscale/greyscale.cc
     src/smoothing/smoothing.cc
+    src/smoothing/smoothing.cu
     src/difference/diff.cc
+    src/difference/diff.cu
     src/closing_opening/closing_opening.cc
     src/connected_components/binary.cc
     src/connected_components/connected_components.cc
