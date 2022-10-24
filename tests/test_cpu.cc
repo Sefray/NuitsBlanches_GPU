@@ -2,11 +2,10 @@
 
 #include <cstdlib>
 
-#include "src/pipeline_cpu.hh"
+#include "src/pipeline.hh"
 #include "src/debug.hh"
 
 using namespace cpu;
-using namespace cpu::internal;
 
 int *malloc_img(int *ori, int width, int height)
 {

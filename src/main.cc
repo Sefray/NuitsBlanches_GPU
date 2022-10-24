@@ -2,7 +2,7 @@
 #include <png++/png.hpp>
 #include <nlohmann/json.hpp>
 
-#include "pipeline_cpu.hh"
+#include "pipeline.hh"
 
 using json = nlohmann::json;
 

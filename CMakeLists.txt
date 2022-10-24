@@ -13,13 +13,24 @@ find_package(benchmark REQUIRED)
 add_library(lib)
 target_compile_features(lib PUBLIC cxx_std_20)
 
-target_sources(lib PRIVATE
-    src/debug.cc
-    src/debug.hh
-    src/pipeline_cpu.cc
-    src/pipeline_cpu.hh
+target_sources(lib PRIVATE    
+    src/pipeline.cc
+    src/pipeline.cu
+    src/pipeline.hh
+
+    src/greyscale/greyscale.cc
+    src/smoothing/smoothing.cc
+    src/difference/diff.cc
+    src/closing_opening/closing_opening.cc
+    src/connected_components/binary.cc
+    src/connected_components/connected_components.cc
+    
     src/test.cu
     src/test.cuh
+
+    src/debug.cc
+    src/debug.hh
+    
 )
 
 include_directories(".")

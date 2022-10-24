@@ -1,12 +1,12 @@
 #include <benchmark/benchmark.h>
 
 #include <png++/png.hpp>
-#include "src/pipeline_cpu.hh"
+#include "src/pipeline.hh"
 
-void BM_Detection_cpu(benchmark::State &st)
+void BM_Detection_cpu(benchmark::State &st, std::string ref_filename, std::string modified_filename)
 {
-    png::image<png::rgb_pixel> ref("../data/01.png");
-    png::image<png::rgb_pixel> modified("../data/02.png");
+    png::image<png::rgb_pixel> ref(ref_filename);
+    png::image<png::rgb_pixel> modified(modified_filename);
     auto pixbuf = modified.get_pixbuf();
 
     int width = ref.get_width();
@@ -21,8 +21,8 @@ void BM_Detection_cpu(benchmark::State &st)
     std::free(ref_smoothed);
 }
 
-BENCHMARK(BM_Detection_cpu)
-    ->Unit(benchmark::kMillisecond)
-    ->UseRealTime();
+BENCHMARK_CAPTURE(BM_Detection_cpu, nuit_blanche_02, std::string("../data/01.png"), std::string("../data/02.png"));
+BENCHMARK_CAPTURE(BM_Detection_cpu, nuit_blanche_03, std::string("../data/01.png"), std::string("../data/03.png"));
+BENCHMARK_CAPTURE(BM_Detection_cpu, nuit_blanche_04, std::string("../data/01.png"), std::string("../data/04.png"));
 
 BENCHMARK_MAIN();
