@@ -5,7 +5,7 @@
 #include <numbers>
 #include <set>
 
-#include "debug.hh"
+#include "debug/debug.hh"
 
 namespace cpu
 {

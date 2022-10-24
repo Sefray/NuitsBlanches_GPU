@@ -14,9 +14,9 @@ add_library(lib)
 target_compile_features(lib PUBLIC cxx_std_20)
 
 target_sources(lib PRIVATE    
+    src/pipeline.hh
     src/pipeline.cc
     src/pipeline.cu
-    src/pipeline.hh
 
     src/greyscale/greyscale.cc
     src/smoothing/smoothing.cc
@@ -28,16 +28,12 @@ target_sources(lib PRIVATE
     src/connected_components/binary.cc
     src/connected_components/binary.cu
     src/connected_components/connected_components.cc
-    
-    src/test.cu
-    src/test.cuh
 
-    src/debug.cc
-    src/debug.hh
-    
+    src/debug/debug.cc
+    src/debug/debug.hh
 )
 
-include_directories(".")
+include_directories("src")
 
 ### Main ###
 

@@ -1,4 +1,4 @@
-#include "src/pipeline.hh"
+#include "pipeline.hh"
 
 #include <cmath>
 #include <numbers>

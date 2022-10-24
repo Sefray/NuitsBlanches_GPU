@@ -2,8 +2,8 @@
 
 #include <cstdlib>
 
-#include "src/pipeline.hh"
-#include "src/debug.hh"
+#include "pipeline.hh"
+#include "debug/debug.hh"
 
 using namespace cpu;
 

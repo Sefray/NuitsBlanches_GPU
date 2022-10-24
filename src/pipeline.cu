@@ -5,7 +5,7 @@
 #include <numbers>
 #include <set>
 
-#include "debug.hh"
+#include "debug/debug.hh"
 #include <err.h>
 
 namespace gpu

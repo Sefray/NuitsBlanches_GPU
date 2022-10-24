@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 #include "pipeline.hh"
-#include "test.cuh"
 
 using json = nlohmann::json;
 

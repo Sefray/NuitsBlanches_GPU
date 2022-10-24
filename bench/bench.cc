@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <png++/png.hpp>
-#include "src/pipeline.hh"
+#include "pipeline.hh"
 
 void BM_Detection_cpu(benchmark::State &st, std::string ref_filename, std::string modified_filename)
 {
