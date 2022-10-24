@@ -2,7 +2,7 @@
 
 namespace gpu
 {
-    __global__ void gpu_difference(int *d_ref_in, int *d_in, int *d_out, int width, int height)
+    __global__ void gpu_binary_image(int *d_in_out, int width, int height, int threshold)
     {
         int p = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -12,11 +12,10 @@ namespace gpu
         if (x >= width || y >= height)
             return;
 
-        int c = x + y * width;
-        d_out[c] = std::abs(d_in[c] - d_ref_in[c]);
+        d_in_out[p] = d_in_out[p] < threshold ? 0 : 1;
     }
 
-    void compute_difference(int *d_ref_in, int *d_in, int *d_out, int width, int height)
+    void binary_image(int *d_in_out, int width, int height, int threshold)
     {
         int bsize = 256;
         int g = std::ceil(((float)(width * height)) / bsize);
@@ -24,7 +23,7 @@ namespace gpu
         dim3 dimBlock(bsize);
         dim3 dimGrid(g);
 
-        gpu_difference<<<dimGrid, dimBlock>>>(d_ref_in, d_in, d_out, width, height);
+        gpu_binary_image<<<dimGrid, dimBlock>>>(d_in_out, width, height, threshold);
         cudaDeviceSynchronize();
 
         if (cudaPeekAtLastError())

@@ -24,7 +24,9 @@ target_sources(lib PRIVATE
     src/difference/diff.cc
     src/difference/diff.cu
     src/closing_opening/closing_opening.cc
+    src/closing_opening/closing_opening.cu
     src/connected_components/binary.cc
+    src/connected_components/binary.cu
     src/connected_components/connected_components.cc
     
     src/test.cu

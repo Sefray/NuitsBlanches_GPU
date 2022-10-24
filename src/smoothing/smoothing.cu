@@ -1,8 +1,6 @@
 #include "src/pipeline.hh"
-#include "src/test.cuh"
 
 #include <cstdlib>
-#include <err.h>
 
 namespace gpu
 {
@@ -61,10 +59,7 @@ namespace gpu
         cudaDeviceSynchronize();
 
         if (cudaPeekAtLastError())
-        {
-            std::cout << cudaPeekAtLastError() << std::endl;
             errx(1, "Computation Error");
-        }
 
         cudaFree(kernel);
     }

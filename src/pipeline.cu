@@ -71,34 +71,46 @@ namespace gpu
                 // 3.Difference
                 compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
 
-                // TMP
+#ifndef NDEBUG
                 rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
                 if (rc)
                         errx(1, "Fail buffer copy to host");
-
-                rc = cudaFree(d_buffer_A);
-                if (rc)
-                        errx(1, "Fail to free memory");
-
-                rc = cudaFree(d_buffer_B);
-                if (rc)
-                        errx(1, "Fail to free memory");
-#ifndef NDEBUG
                 save_img(h_greyscale, width, height, "gpu_diff.png");
 #endif
 
                 // 4.Closing/opening with disk or rectangle
-                auto img = cpu::closing_opening(h_greyscale, width, height);
+                closing_opening(d_buffer_A, d_buffer_B, width, height);
+#ifndef NDEBUG
+                rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+                if (rc)
+                        errx(1, "Fail buffer copy to host");
+                save_img(h_greyscale, width, height, "gpu_diff.png");
+#endif
 
                 // 5.1.Thresh image
                 auto threshold = 30;
-                cpu::binary_image(img, width, height, threshold);
+                binary_image(d_buffer_A, width, height, threshold);
+#ifndef NDEBUG
+                rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+                if (rc)
+                        errx(1, "Fail buffer copy to host");
+                save_img(h_greyscale, width, height, "gpu_diff.png");
+#endif
+                rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
+                if (rc)
+                        errx(1, "Fail buffer copy to host");
+                rc = cudaFree(d_buffer_A);
+                if (rc)
+                        errx(1, "Fail to free memory");
+                rc = cudaFree(d_buffer_B);
+                if (rc)
+                        errx(1, "Fail to free memory");
 
                 // 5.2.Lakes
-                auto components = cpu::get_connected_components(img, width, height, 200);
+                auto components = cpu::get_connected_components(h_greyscale, width, height, 200);
 
                 // TMP
-                std::free(img);
+                std::free(h_greyscale);
 
                 return components;
         }
