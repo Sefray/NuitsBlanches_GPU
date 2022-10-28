@@ -2,7 +2,7 @@
 
 namespace gpu
 {
-    int *create_mask(int kernel_size, enum cpu::mask_type type = cpu::mask_type::square)
+    int *create_mask(int kernel_size, enum mask_type type = mask_type::square)
     {
         int *h_ret = cpu::create_mask(kernel_size, type);
 

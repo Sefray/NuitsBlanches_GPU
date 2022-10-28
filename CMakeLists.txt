@@ -9,6 +9,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Werror -Wextra
 find_package(PNG REQUIRED)
 find_package(nlohmann_json 3.10.5 REQUIRED)
 find_package(benchmark REQUIRED)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_library(lib)
 target_compile_features(lib PUBLIC cxx_std_20)
@@ -40,7 +42,7 @@ include_directories("src")
 add_executable(main src/main.cc)
 target_compile_features(main PUBLIC cxx_std_20)
 
-target_link_libraries(main PRIVATE lib PNG::PNG nlohmann_json::nlohmann_json)
+target_link_libraries(main PRIVATE lib ${OpenCV_LIBS} PNG::PNG nlohmann_json::nlohmann_json)
 
 
 ### Test ###

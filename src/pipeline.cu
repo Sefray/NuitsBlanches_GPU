@@ -35,7 +35,7 @@ namespace gpu
                         errx(1, "Fail to free memory");
         }
 
-        std::set<std::vector<int>> pipeline(int *d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height)
+        std::set<std::vector<int>> pipeline(int *d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height, int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold, int minimum_pixel)
         {
                 cudaError_t rc = cudaSuccess;
 
@@ -59,7 +59,7 @@ namespace gpu
                         errx(1, "Fail buffer copy to device");
 
                 // 2.Smooth (gaussian filter)
-                smoothing(d_buffer_A, d_buffer_B, width, height);
+                smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
 
 #ifndef NDEBUG
                 rc = cudaMemcpy(h_greyscale, d_buffer_B, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
@@ -79,22 +79,21 @@ namespace gpu
 #endif
 
                 // 4.Closing/opening with disk or rectangle
-                closing_opening(d_buffer_A, d_buffer_B, width, height);
+                closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing);
 #ifndef NDEBUG
                 rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
                 if (rc)
                         errx(1, "Fail buffer copy to host");
-                save_img(h_greyscale, width, height, "gpu_diff.png");
+                save_img(h_greyscale, width, height, "gpu_closing_opening.png");
 #endif
 
                 // 5.1.Thresh image
-                auto threshold = 30;
-                binary_image(d_buffer_A, width, height, threshold);
+                binary_image(d_buffer_A, width, height, binary_threshold);
 #ifndef NDEBUG
                 rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
                 if (rc)
                         errx(1, "Fail buffer copy to host");
-                save_img(h_greyscale, width, height, "gpu_diff.png");
+                save_img(h_greyscale, width, height, "gpu_binary.png", 255);
 #endif
                 rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
                 if (rc)
@@ -107,7 +106,7 @@ namespace gpu
                         errx(1, "Fail to free memory");
 
                 // 5.2.Lakes
-                auto components = cpu::get_connected_components(h_greyscale, width, height, 200);
+                auto components = cpu::get_connected_components(h_greyscale, width, height, minimum_pixel);
 
                 // TMP
                 std::free(h_greyscale);

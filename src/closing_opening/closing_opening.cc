@@ -74,6 +74,9 @@ namespace cpu
 
     int *closing_opening(int *img, int width, int height, int kernel_size_opening, int kernel_size_closing)
     {
+        assert(kernel_size_opening % 2 == 1);
+        assert(kernel_size_closing % 2 == 1);
+
         // Closing
         auto mask = create_mask(kernel_size_closing);
         auto a = erosion(img, width, height, mask, kernel_size_closing);
