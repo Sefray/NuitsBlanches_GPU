@@ -47,15 +47,34 @@ namespace gpu
 {
   int* malloc_and_copy(const int* h, int width, int height);
   void my_cuda_free(int* d);
+  int* my_cuda_malloc(size_t n);
+  int* my_cuda_calloc(size_t n);
 
-  void smoothing(int* d_in, int* d_out, int width, int height, int kernel_size);
-  void compute_difference(int* d_ref_in, int* d_in, int* d_out, int width, int height);
-  void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
   void binary_image(int* d_in_out, int width, int height, int threshold);
-  std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
-                                                      int minimum_pixel);
 
-  std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                      int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                      int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
+  namespace one
+  {
+    int* smoothing(int* d_in, int width, int height, int kernel_size);
+    int* compute_difference(int* d_ref_in, int* d_in, int width, int height);
+    int* closing_opening(int* d_A, int width, int height, int kernel_size_opening, int kernel_size_closing);
+    std::set<std::vector<int>> get_connected_components(int* d_in, int width, int height, int minimum_pixel);
+
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
+                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
+  } // namespace one
+
+  namespace two
+  {
+    void smoothing(int* d_in, int* d_out, int width, int height, int kernel_size);
+    void compute_difference(int* d_ref_in, int* d_in, int* d_out, int width, int height);
+    void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
+                                                        int minimum_pixel);
+
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
+                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
+  } // namespace two
+
 } // namespace gpu

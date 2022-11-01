@@ -34,7 +34,6 @@ namespace cpu
     assert(kernel_size % 2 == 1);
 
     float* kernel = init_gaussian_kernel(kernel_size);
-
     int ks2 = kernel_size / 2;
 
     int* ret = static_cast<int*>(std::calloc(width * height, sizeof(int)));

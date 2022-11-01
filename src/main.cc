@@ -10,13 +10,13 @@ using json = nlohmann::json;
 enum mode
 {
   CPU,
-  GPU
+  GPU_1,
+  GPU_2,
 };
 
 int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(argc, argv,
-
                                "{mode                   |0|0:CPU 1:GPU}"
 
                                "{kernel_size |5|Should be odd}"
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
 
   int* d_ref_smoothed = NULL;
-  if (mode == GPU)
+  if (mode != CPU)
     d_ref_smoothed = gpu::malloc_and_copy(ref_smoothed, width, height);
 
   json ret;
@@ -73,16 +73,21 @@ int main(int argc, char* argv[])
           cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
                         kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
       break;
-    case GPU:
+    case GPU_1:
       ret[argv[img]] =
-          gpu::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                        kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
+          gpu::one::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
+                             kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
+      break;
+    case GPU_2:
+      ret[argv[img]] =
+          gpu::two::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
+                             kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
       break;
     }
   }
 
   std::free(ref_smoothed);
-  if (mode == GPU)
+  if (mode != CPU)
     gpu::my_cuda_free(d_ref_smoothed);
 
   std::cout << ret.dump(2) << std::endl;

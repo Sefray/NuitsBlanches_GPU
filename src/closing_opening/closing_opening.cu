@@ -68,33 +68,77 @@ namespace gpu
     d_out[y * width + x] = v;
   }
 
-  void kernel_func(int* d_in, int* d_out, int width, int height, int* kernel, int kernel_size, enum type_oc type)
+  namespace one
   {
-    int bsize = 256;
-    int g     = std::ceil(((float)(width * height)) / bsize);
+    int* kernel_func(int* d_in, int width, int height, int* kernel, int kernel_size, enum type_oc type)
+    {
+      int* d_out = my_cuda_calloc(sizeof(int) * width * height);
 
-    dim3 dimBlock(bsize);
-    dim3 dimGrid(g);
+      int bsize = 256;
+      int g     = std::ceil(((float)(width * height)) / bsize);
 
-    gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, type);
-    cudaDeviceSynchronize();
+      dim3 dimBlock(bsize);
+      dim3 dimGrid(g);
 
-    if (cudaPeekAtLastError())
-      errx(1, "Computation Error");
-  }
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, type);
+      cudaDeviceSynchronize();
 
-  void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing)
+      if (cudaPeekAtLastError())
+        errx(1, "Computation Error");
+
+      my_cuda_free(d_in);
+
+      return d_out;
+    }
+
+    int* closing_opening(int* d_in, int width, int height, int kernel_size_opening, int kernel_size_closing)
+    {
+      // Closing
+      auto mask = create_mask(kernel_size_closing);
+      auto d_a  = kernel_func(d_in, width, height, mask, kernel_size_closing, EROSION);
+      auto d_b  = kernel_func(d_a, width, height, mask, kernel_size_closing, DILATATION);
+      cudaFree(mask);
+
+      // Opening
+      mask       = create_mask(kernel_size_opening);
+      auto d_c   = kernel_func(d_b, width, height, mask, kernel_size_opening, DILATATION);
+      auto d_out = kernel_func(d_c, width, height, mask, kernel_size_opening, EROSION);
+      cudaFree(mask);
+
+      return d_out;
+    }
+  } // namespace one
+
+  namespace two
   {
-    // Closing
-    auto mask = create_mask(kernel_size_closing);
-    kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
-    kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, DILATATION);
-    cudaFree(mask);
+    void kernel_func(int* d_in, int* d_out, int width, int height, int* kernel, int kernel_size, enum type_oc type)
+    {
+      int bsize = 256;
+      int g     = std::ceil(((float)(width * height)) / bsize);
 
-    // Opening
-    mask = create_mask(kernel_size_opening);
-    kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
-    kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, EROSION);
-    cudaFree(mask);
-  }
+      dim3 dimBlock(bsize);
+      dim3 dimGrid(g);
+
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, type);
+      cudaDeviceSynchronize();
+
+      if (cudaPeekAtLastError())
+        errx(1, "Computation Error");
+    }
+
+    void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing)
+    {
+      // Closing
+      auto mask = create_mask(kernel_size_closing);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
+      kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, DILATATION);
+      cudaFree(mask);
+
+      // Opening
+      mask = create_mask(kernel_size_opening);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
+      kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, EROSION);
+      cudaFree(mask);
+    }
+  } // namespace two
 } // namespace gpu
