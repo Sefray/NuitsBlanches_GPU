@@ -2,42 +2,54 @@
 
 #include <png++/png.hpp>
 
-void display_img_stdout(int *img, int width, int height)
+void display_img_stdout(int* img, int width, int height)
 {
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-            printf("%03d ", img[y * width + x]);
-        std::cout << std::endl;
-    }
-
+  for (int y = 0; y < height; y++)
+  {
+    for (int x = 0; x < width; x++)
+      printf("%03d ", img[y * width + x]);
     std::cout << std::endl;
+  }
+
+  std::cout << std::endl;
 }
 
-void save_img(int *img, int width, int height, std::string filename, int factor)
+void display_imgf_stdout(float* img, int width, int height)
 {
-    png::image<png::gray_pixel> image(width, height);
+  for (int y = 0; y < height; y++)
+  {
+    for (int x = 0; x < width; x++)
+      printf("%03f ", img[y * width + x]);
+    std::cout << std::endl;
+  }
 
-    for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++)
-            image[y][x] = img[y * width + x] * factor;
-
-    image.write(filename);
+  std::cout << std::endl;
 }
 
-void compute_and_display_histogramme(int *img, int width, int height)
+void save_img(int* img, int width, int height, std::string filename, int factor)
 {
-    int histo[256] = {0};
-    for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++)
-            histo[img[y * width + x]]++;
+  png::image<png::gray_pixel> image(width, height);
 
-    float nb_pixel = width * height;
-    float cumul = 0;
-    for (int i = 0; i < 256; i++)
-    {
-        cumul += histo[i] / nb_pixel;
-        printf("%03d -> %10f     cumul = %10f\n", i, histo[i] / nb_pixel, cumul);
-    }
-    printf("\n");
+  for (int y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
+      image[y][x] = img[y * width + x] * factor;
+
+  image.write(filename);
+}
+
+void compute_and_display_histogramme(int* img, int width, int height)
+{
+  int histo[256] = {0};
+  for (int y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
+      histo[img[y * width + x]]++;
+
+  float nb_pixel = width * height;
+  float cumul    = 0;
+  for (int i = 0; i < 256; i++)
+  {
+    cumul += histo[i] / nb_pixel;
+    printf("%03d -> %10f     cumul = %10f\n", i, histo[i] / nb_pixel, cumul);
+  }
+  printf("\n");
 }
