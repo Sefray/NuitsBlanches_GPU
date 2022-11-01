@@ -34,6 +34,7 @@ namespace cpu
 
     void binary_image(int *image, int width, int height, int threshold);
 
+    std::set<std::vector<int>> compute_find(int *image, int width, int height, int minimum_pixel, bool from_union);
     std::set<std::vector<int>> get_connected_components(int *image, int width, int height, enum mode_cc mode_cc, int minimum_pixel);
 
     std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height, int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
@@ -49,7 +50,7 @@ namespace gpu
     void closing_opening(int *d_A, int *d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
     void binary_image(int *d_in_out, int width, int height, int threshold);
 
-    std::set<std::vector<int>> get_connected_components(int *image, int width, int height, enum mode_cc mode_cc, int minimum_pixel);
+    std::set<std::vector<int>> get_connected_components(int *d_A, int *d_B, int *h, int width, int height, int minimum_pixel);
 
     std::set<std::vector<int>> pipeline(int *ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width, int height, int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
 }

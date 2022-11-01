@@ -95,20 +95,16 @@ namespace gpu
                         errx(1, "Fail buffer copy to host");
                 save_img(h_greyscale, width, height, "gpu_binary.png", 255);
 #endif
-                rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-                if (rc)
-                        errx(1, "Fail buffer copy to host");
+
+                // 5.2.Lakes
+                auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
+
                 rc = cudaFree(d_buffer_A);
                 if (rc)
                         errx(1, "Fail to free memory");
                 rc = cudaFree(d_buffer_B);
                 if (rc)
                         errx(1, "Fail to free memory");
-
-                // 5.2.Lakes
-                auto components = cpu::get_connected_components(h_greyscale, width, height, mode_cc, minimum_pixel);
-
-                // TMP
                 std::free(h_greyscale);
 
                 return components;

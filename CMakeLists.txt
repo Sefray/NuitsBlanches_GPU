@@ -30,6 +30,7 @@ target_sources(lib PRIVATE
     src/connected_components/binary.cc
     src/connected_components/binary.cu
     src/connected_components/connected_components.cc
+    src/connected_components/connected_components.cu
 
     src/debug/debug.cc
     src/debug/debug.hh
