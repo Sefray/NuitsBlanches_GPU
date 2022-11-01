@@ -152,14 +152,10 @@ namespace cpu
     std::set<std::vector<int>> get_connected_components_l(int *image, int width, int height, int minimum_pixel)
     {
         init_label(image, width, height);
-        display_img_stdout(image, width, height);
 
         bool changed = true;
         while (changed)
-        {
             changed = propaged_label(image, width, height);
-            display_img_stdout(image, width, height);
-        }
 
         // relabel(L); // Make label continuous
         // ==> Why ?
