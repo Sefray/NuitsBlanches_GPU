@@ -23,6 +23,56 @@ void check_img(int *out, int *ref, int width, int height)
       EXPECT_EQ(out[y * width + x], ref[y * width + x]);
 }
 
+TEST(Smoothing, smothing_one_cell)
+{
+  int kernel_size = 5;
+
+  int width = 5;
+  int height = 5;
+  int ori[] = {0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 1, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0};
+
+  auto out = smoothing(malloc_img(ori, width, height), width, height, kernel_size);
+
+  int ref[] = {0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0};
+
+  check_img(ref, out, width, height);
+
+  std::free(out);
+}
+
+TEST(Smoothing, smothing_one)
+{
+  int kernel_size = 5;
+
+  int width = 5;
+  int height = 5;
+  int ori[] = {1, 1, 1, 1, 1,
+               1, 1, 1, 1, 1,
+               1, 1, 1, 1, 1,
+               1, 1, 1, 1, 1,
+               1, 1, 1, 1, 1};
+
+  auto out = smoothing(malloc_img(ori, width, height), width, height, kernel_size);
+
+  int ref[] = {0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 1, 0, 0,
+               0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0};
+
+  check_img(ref, out, width, height);
+
+  std::free(out);
+}
+
 TEST(Closing_Opening, erosion_single_square)
 {
   int size_mask = 3;
