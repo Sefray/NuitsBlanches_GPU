@@ -86,14 +86,14 @@ namespace gpu
     {
         // Closing
         auto mask = create_mask(kernel_size_closing);
-        kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, DILATATION);
-        kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, EROSION);
+        kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
+        kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, DILATATION);
         cudaFree(mask);
 
         // Opening
         mask = create_mask(kernel_size_opening);
-        kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, EROSION);
-        kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, DILATATION);
+        kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
+        kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, EROSION);
         cudaFree(mask);
     }
 }
