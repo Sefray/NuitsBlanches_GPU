@@ -8,13 +8,24 @@ namespace cpu
     float *init_gaussian_kernel(int kernel_size, float sigma)
     {
         float *ret = static_cast<float *>(std::malloc(sizeof(float) * kernel_size * kernel_size));
+        float s = 0;
         for (int i = 0; i < kernel_size; i++)
             for (int j = 0; j < kernel_size; j++)
             {
                 float x = i - kernel_size / 2;
                 float y = j - kernel_size / 2;
-                ret[i * kernel_size + j] = std::exp2f(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * sigma * sigma * std::numbers::pi);
+                int pos = i * kernel_size + j;
+                ret[pos] = std::exp2f(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * sigma * sigma * std::numbers::pi);
+                s += ret[pos];
             }
+
+        for (int i = 0; i < kernel_size; i++)
+            for (int j = 0; j < kernel_size; j++)
+            {
+                int pos = i * kernel_size + j;
+                ret[pos] /= s;
+            }
+
         return ret;
     }
 
@@ -23,6 +34,7 @@ namespace cpu
         assert(kernel_size % 2 == 1);
 
         float *kernel = init_gaussian_kernel(kernel_size);
+
         int ks2 = kernel_size / 2;
 
         int *ret = static_cast<int *>(std::calloc(width * height, sizeof(int)));
@@ -39,7 +51,7 @@ namespace cpu
                         int cj = j + ks2;
                         v += kernel[cj * kernel_size + ci] * greyscale_image[cy * width + cx];
                     }
-                ret[x + y * width] = static_cast<int>(v);
+                ret[x + y * width] = static_cast<int>(std::round(v));
             }
 
         std::free(kernel);

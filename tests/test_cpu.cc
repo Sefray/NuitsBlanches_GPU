@@ -23,7 +23,33 @@ void check_img(int *out, int *ref, int width, int height)
       EXPECT_EQ(out[y * width + x], ref[y * width + x]);
 }
 
-TEST(Smoothing, smothing_one_cell)
+void sum_as_one(float *kernel, int kernel_size)
+{
+  float f = 0;
+  for (int x = 0; x < kernel_size; x++)
+    for (int y = 0; y < kernel_size; y++)
+      f += kernel[x + y * kernel_size];
+
+  EXPECT_NEAR(f, 1, 0.00001f);
+}
+
+TEST(Smoothing_kernel, gaussian_5)
+{
+  int kernel_size = 5;
+  auto kernel = init_gaussian_kernel(kernel_size);
+  sum_as_one(kernel, kernel_size);
+  std::free(kernel);
+}
+
+TEST(Smoothing_kernel, gaussian_11)
+{
+  int kernel_size = 11;
+  auto kernel = init_gaussian_kernel(kernel_size);
+  sum_as_one(kernel, kernel_size);
+  std::free(kernel);
+}
+
+TEST(Smoothing, smoothing_one)
 {
   int kernel_size = 5;
 
@@ -48,7 +74,7 @@ TEST(Smoothing, smothing_one_cell)
   std::free(out);
 }
 
-TEST(Smoothing, smothing_one)
+TEST(Smoothing, smoothing_ones)
 {
   int kernel_size = 5;
 
