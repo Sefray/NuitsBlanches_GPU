@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
                                  "{binary_threshold        |12|}"
 
                                  "{minimum_pixel      |30| Angle in degree}"
+                                 "{mode_cc            |0|0:slide 1:union_find}"
 
                                  "{help    h|false|show help message}");
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
     int kernel_size_opening = parser.get<int>("kernel_size_opening");
     int kernel_size_closing = parser.get<int>("kernel_size_closing");
     int binary_threshold = parser.get<int>("binary_threshold");
+    enum mode_cc mode_cc = static_cast<enum mode_cc>(parser.get<int>("mode_cc"));
     int minimum_pixel = parser.get<int>("minimum_pixel");
 
     png::image<png::rgb_pixel> ref(argv[i]);
@@ -69,11 +71,11 @@ int main(int argc, char *argv[])
         {
         case CPU:
             ret[argv[img]] = cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height,
-                                           kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, minimum_pixel);
+                                           kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
             break;
         case GPU:
             ret[argv[img]] = gpu::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height,
-                                           kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, minimum_pixel);
+                                           kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
             break;
         }
     }

@@ -35,7 +35,7 @@ namespace gpu
                         errx(1, "Fail to free memory");
         }
 
-        std::set<std::vector<int>> pipeline(int *d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height, int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold, int minimum_pixel)
+        std::set<std::vector<int>> pipeline(int *d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height, int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc, int minimum_pixel)
         {
                 cudaError_t rc = cudaSuccess;
 
@@ -106,7 +106,7 @@ namespace gpu
                         errx(1, "Fail to free memory");
 
                 // 5.2.Lakes
-                auto components = cpu::get_connected_components(h_greyscale, width, height, minimum_pixel);
+                auto components = cpu::get_connected_components(h_greyscale, width, height, mode_cc, minimum_pixel);
 
                 // TMP
                 std::free(h_greyscale);

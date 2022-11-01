@@ -17,12 +17,13 @@ void BM_Detection_cpu(benchmark::State &st, std::string ref_filename, std::strin
     int kernel_size_closing = 41;
     int binary_threshold = 10;
     int minimum_pixel = 30;
+    enum mode_cc mode_cc = slide;
 
     auto ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
     auto ref_smoothed = cpu::smoothing(ref_greyscale, width, height, kernel_size);
 
     for (auto _ : st)
-        auto components = cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, minimum_pixel);
+        auto components = cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
 
     std::free(ref_smoothed);
 }
