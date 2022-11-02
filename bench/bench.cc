@@ -1,7 +1,10 @@
 #include <benchmark/benchmark.h>
 
-#include "pipeline.hh"
 #include <png++/png.hpp>
+#include <vector>
+
+#include "mains.hh"
+#include "pipeline.hh"
 
 void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::string modified_filename, enum mode mode,
                       enum mode_cc mode_cc)
@@ -12,6 +15,8 @@ void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::strin
   int binary_threshold    = 10;
   int minimum_pixel       = 30;
 
+  std::vector<std::string> vargv = {modified_filename};
+
   for (auto _ : st)
   {
     png::image<png::rgb_pixel> ref(ref_filename);
@@ -19,35 +24,10 @@ void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::strin
     int width  = ref.get_width();
     int height = ref.get_height();
 
-    auto ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
-    auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
+    std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2};
 
-    int* d_ref_smoothed = NULL;
-    if (mode != CPU)
-      d_ref_smoothed = gpu::malloc_and_copy(ref_smoothed, width, height);
-
-    png::image<png::rgb_pixel> modified(modified_filename);
-    auto                       pixbuf = modified.get_pixbuf();
-    switch (mode)
-    {
-    case CPU:
-      cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                    kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    case GPU_1:
-      gpu::one::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                         kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    case GPU_2:
-      gpu::two::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                         kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    }
-
-    if (mode != CPU)
-      gpu::my_cuda_free(d_ref_smoothed);
-
-    std::free(ref_smoothed);
+    main_func[mode](vargv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold,
+                    mode_cc, minimum_pixel);
   }
 }
 
@@ -55,7 +35,6 @@ BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_cpu_slide, std::string("../data
                   std::string("../data/scia_premium_0002.png"), CPU, slide);
 BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_cpu_union_find, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), CPU, union_find);
-
 BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_first, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), GPU_1, union_find);
 BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_second, std::string("../data/scia_premium_0001.png"),

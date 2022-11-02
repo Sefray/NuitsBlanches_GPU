@@ -34,6 +34,9 @@ target_sources(lib PRIVATE
 
     src/debug/debug.cc
     src/debug/debug.hh
+
+    src/mains.cc
+    src/mains.hh
 )
 
 include_directories("src")

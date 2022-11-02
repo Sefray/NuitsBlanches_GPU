@@ -81,7 +81,8 @@ namespace gpu
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
                                         int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
+                                        int* d_buffer_B);
   } // namespace two
 
 } // namespace gpu

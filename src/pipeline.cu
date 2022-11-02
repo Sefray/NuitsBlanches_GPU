@@ -10,20 +10,24 @@
 
 namespace gpu
 {
-  int* malloc_and_copy(const int* h, int width, int height)
+  void my_cuda_mem_copy(const int* h, int* d, size_t n)
   {
-    cudaError_t rc = cudaSuccess;
-
-    int* d;
-
-    rc = cudaMalloc((void**)&d, sizeof(int) * width * height);
-    if (rc)
-      errx(1, "Fail buffer allocation");
-
-    cudaMemcpy(d, h, sizeof(int) * width * height, cudaMemcpyHostToDevice);
+    int rc = cudaMemcpy(d, h, n, cudaMemcpyHostToDevice);
     if (rc)
       errx(1, "Fail buffer copy to device");
+  }
 
+  void my_cuda_mem_set(int* d, int v, size_t n)
+  {
+    int rc = cudaMemset((void*)d, 0, n);
+    if (rc)
+      errx(1, "Fail buffer copy to device");
+  }
+
+  int* malloc_and_copy(const int* h, int width, int height)
+  {
+    int* d = my_cuda_malloc(sizeof(int) * width * height);
+    my_cuda_mem_copy(h, d, sizeof(int) * width * height);
     return d;
   }
 
@@ -35,21 +39,19 @@ namespace gpu
       errx(1, "Fail to free memory");
   }
 
-  int* my_cuda_calloc(size_t n)
-  {
-    int* d_out = my_cuda_malloc(n);
-    int   rc    = cudaMemset(d_out, 0, n);
-    if (rc)
-      errx(1, "Fail buffer set to 0 for d_out");
-    return d_out;
-  }
-
   int* my_cuda_malloc(size_t n)
   {
     int* d_out;
     int  rc = cudaMalloc(&d_out, n);
     if (rc)
       errx(1, "Fail buffer allocation for d_out");
+    return d_out;
+  }
+
+  int* my_cuda_calloc(size_t n)
+  {
+    int* d_out = my_cuda_malloc(n);
+    my_cuda_mem_set(d_out, 0, n);
     return d_out;
   }
 
@@ -89,7 +91,8 @@ namespace gpu
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel)
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
+                                        int* d_buffer_B)
     {
       cudaError_t rc = cudaSuccess;
 
@@ -97,46 +100,20 @@ namespace gpu
       auto h_greyscale = cpu::greyscale(h_input, width, height);
 
       // Buffer Allocation
-      int*  d_buffer_A = malloc_and_copy(h_greyscale, width, height);
-      int* d_buffer_B = my_cuda_calloc(sizeof(int) * width * height);
+      my_cuda_mem_copy(h_greyscale, d_buffer_A, sizeof(int) * width * height);
+      my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
       smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
 
-#ifndef NDEBUG
-      rc = cudaMemcpy(h_greyscale, d_buffer_B, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-      save_img(h_greyscale, width, height, "gpu_smoothed.png");
-#endif
-
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
 
-#ifndef NDEBUG
-      rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-      save_img(h_greyscale, width, height, "gpu_diff.png");
-#endif
-
       // 4.Closing/opening with disk or rectangle
       closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing);
-#ifndef NDEBUG
-      rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-      save_img(h_greyscale, width, height, "gpu_closing_opening.png");
-#endif
 
       // 5.1.Thresh image
       binary_image(d_buffer_A, width, height, binary_threshold);
-#ifndef NDEBUG
-      rc = cudaMemcpy(h_greyscale, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-      save_img(h_greyscale, width, height, "gpu_binary.png", 255);
-#endif
 
       // 5.2.Lakes
       auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
