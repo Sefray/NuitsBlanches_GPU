@@ -7,6 +7,13 @@
 
 #include "debug/debug.hh"
 
+enum mode
+{
+  CPU,
+  GPU_1,
+  GPU_2,
+};
+
 enum mask_type
 {
   square,

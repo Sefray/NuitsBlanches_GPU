@@ -7,13 +7,6 @@
 
 using json = nlohmann::json;
 
-enum mode
-{
-  CPU,
-  GPU_1,
-  GPU_2,
-};
-
 int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(argc, argv,
