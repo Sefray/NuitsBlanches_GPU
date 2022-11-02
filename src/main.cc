@@ -7,6 +7,74 @@
 
 using json = nlohmann::json;
 
+
+json main_cpu(int argc, char* argv[], png::image<png::rgb_pixel> ref, int width, int height, int kernel_size,
+              int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc,
+              int minimum_pixel)
+{
+  auto ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
+  auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
+
+  json ret;
+  for (int img = 1; img < argc; img++)
+  {
+    png::image<png::rgb_pixel> modified(argv[img]);
+    ret[argv[img]] = cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
+                                   kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
+  }
+
+  std::free(ref_smoothed);
+
+  return ret;
+}
+
+json main_gpu_1(int argc, char* argv[], png::image<png::rgb_pixel> ref, int width, int height, int kernel_size,
+                int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc,
+                int minimum_pixel)
+{
+  auto ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
+  auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
+
+  auto d_ref_smoothed = gpu::malloc_and_copy(ref_smoothed, width, height);
+
+  json ret;
+  for (int img = 1; img < argc; img++)
+  {
+    png::image<png::rgb_pixel> modified(argv[img]);
+    ret[argv[img]] =
+        gpu::one::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
+                           kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
+  }
+
+  std::free(ref_smoothed);
+  gpu::my_cuda_free(d_ref_smoothed);
+
+  return ret;
+}
+
+json main_gpu_2(int argc, char* argv[], png::image<png::rgb_pixel> ref, int width, int height, int kernel_size,
+                int kernel_size_opening, int kernel_size_closing, int binary_threshold, enum mode_cc mode_cc,
+                int minimum_pixel)
+{
+  auto ref_greyscale  = cpu::greyscale(ref.get_pixbuf(), width, height);
+  auto ref_smoothed   = cpu::smoothing(ref_greyscale, width, height, kernel_size);
+  auto d_ref_smoothed = gpu::malloc_and_copy(ref_smoothed, width, height);
+
+  json ret;
+  for (int img = 1; img < argc; img++)
+  {
+    png::image<png::rgb_pixel> modified(argv[img]);
+    ret[argv[img]] =
+        gpu::one::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
+                           kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
+  }
+
+  std::free(ref_smoothed);
+  gpu::my_cuda_free(d_ref_smoothed);
+
+  return ret;
+}
+
 int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(argc, argv,
@@ -34,7 +102,10 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  enum mode mode = static_cast<enum mode>(parser.get<int>("mode"));
+  argv += i;
+  argc -= i;
+
+  int mode = parser.get<int>("mode");
 
   int          kernel_size         = parser.get<int>("kernel_size");
   int          kernel_size_opening = parser.get<int>("kernel_size_opening");
@@ -43,45 +114,15 @@ int main(int argc, char* argv[])
   enum mode_cc mode_cc             = static_cast<enum mode_cc>(parser.get<int>("mode_cc"));
   int          minimum_pixel       = parser.get<int>("minimum_pixel");
 
-  png::image<png::rgb_pixel> ref(argv[i]);
+  png::image<png::rgb_pixel> ref(*argv);
 
   int width  = ref.get_width();
   int height = ref.get_height();
 
-  auto ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
-  auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
+  std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2};
 
-  int* d_ref_smoothed = NULL;
-  if (mode != CPU)
-    d_ref_smoothed = gpu::malloc_and_copy(ref_smoothed, width, height);
-
-  json ret;
-  for (int img = i + 1; img < argc; img++)
-  {
-    png::image<png::rgb_pixel> modified(argv[img]);
-    switch (mode)
-    {
-    case CPU:
-      ret[argv[img]] =
-          cpu::pipeline(ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                        kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    case GPU_1:
-      ret[argv[img]] =
-          gpu::one::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                             kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    case GPU_2:
-      ret[argv[img]] =
-          gpu::two::pipeline(d_ref_smoothed, modified.get_pixbuf(), width, height, kernel_size, kernel_size_opening,
-                             kernel_size_closing, binary_threshold, mode_cc, minimum_pixel);
-      break;
-    }
-  }
-
-  std::free(ref_smoothed);
-  if (mode != CPU)
-    gpu::my_cuda_free(d_ref_smoothed);
+  json ret = main_func[mode](argc, argv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                             binary_threshold, mode_cc, minimum_pixel);
 
   std::cout << ret.dump(2) << std::endl;
 }
