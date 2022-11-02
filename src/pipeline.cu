@@ -65,6 +65,7 @@ namespace gpu
       auto h_greyscale = cpu::greyscale(h_input, width, height);
 
       int* d_greyscale = malloc_and_copy(h_greyscale, width, height);
+      std::free(h_greyscale);
 
       // 2.Smooth (gaussian filter)
       auto d_smoothed = smoothing(d_greyscale, width, height, kernel_size);
@@ -94,8 +95,6 @@ namespace gpu
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B)
     {
-      cudaError_t rc = cudaSuccess;
-
       // 1.Greyscale
       auto h_greyscale = cpu::greyscale(h_input, width, height);
 
@@ -118,12 +117,6 @@ namespace gpu
       // 5.2.Lakes
       auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
 
-      rc = cudaFree(d_buffer_A);
-      if (rc)
-        errx(1, "Fail to free memory");
-      rc = cudaFree(d_buffer_B);
-      if (rc)
-        errx(1, "Fail to free memory");
       std::free(h_greyscale);
 
       return components;

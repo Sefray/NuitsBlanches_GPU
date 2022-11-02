@@ -41,9 +41,26 @@ namespace cpu
         }
   }
 
-  std::set<std::vector<int>> compute_find(int* image, int width, int height, int minimum_pixel, bool from_union)
+  int relabel(int* image, int width, int height)
   {
-    std::map<int, Box> boxes;
+    int r = 0;
+    for (int y = 0; y < height; y++)
+      for (int x = 0; x < width; x++)
+      {
+        int p = x + y * width;
+        if (image[p] < 0)
+        {
+          r++;
+          image[p] = -r;
+        }
+      }
+
+    return r;
+  }
+
+  std::set<std::vector<int>> compute_find(int* image, int width, int height, int minimum_pixel, int nb_boxes)
+  {
+    Box* boxes = static_cast<Box*>(std::calloc(nb_boxes + 1, sizeof(Box)));
 
     int l;
     for (int y = 0; y < height; y++)
@@ -51,39 +68,38 @@ namespace cpu
       {
         if ((l = image[x + y * width]))
         {
-          if (from_union)
-            while (l > 0)
-              l = image[l - 2];
-          else
-            l -= 2;
+          while (l > 0)
+            l = image[l - 2];
 
-          if (boxes.find(l) != boxes.end())
+          auto& box = boxes[-l];
+          if (box.size != 0)
           {
-            auto& box = boxes.at(l);
-
             box.xmin = std::min(x, box.xmin);
             box.ymin = std::min(y, box.ymin);
             box.xmax = std::max(x, box.xmax);
             box.ymax = std::max(y, box.ymax);
-
-            box.size++;
           }
           else
           {
-            Box box  = {.xmin = x, .ymin = y, .xmax = x, .ymax = y, .size = 1};
-            boxes[l] = box;
+            box.xmin = x;
+            box.ymin = y;
+            box.xmax = x;
+            box.ymax = y;
           }
+          box.size++;
         }
       }
 
     std::set<std::vector<int>> ret;
 
-    for (auto& box : boxes)
+    for (int i = 1; i < nb_boxes + 1; i++)
     {
-      if (box.second.size > minimum_pixel)
-        ret.insert({box.second.xmin, box.second.ymin, box.second.xmax - box.second.xmin + 1,
-                    box.second.ymax - box.second.ymin + 1});
+      auto& box = boxes[i];
+      if (box.size > minimum_pixel)
+        ret.insert({box.xmin, box.ymin, box.xmax - box.xmin + 1, box.ymax - box.ymin + 1});
     }
+
+    std::free(boxes);
 
     return ret;
   }
@@ -91,7 +107,8 @@ namespace cpu
   std::set<std::vector<int>> get_connected_components_uf(int* image, int width, int height, int minimum_pixel)
   {
     compute_union(image, width, height);
-    auto ret = compute_find(image, width, height, minimum_pixel, true);
+    int  nb_label = relabel(image, width, height);
+    auto ret      = compute_find(image, width, height, minimum_pixel, nb_label);
     return ret;
   }
 
@@ -99,12 +116,12 @@ namespace cpu
   {
     for (int y = 0; y < height; y++)
       for (int x = 0; x < width; x++)
-        image[x + y * width] *= (x + y * width + 2);
+        image[x + y * width] *= -(x + y * width + 2);
   }
 
   int get_min_neighbourg(int* image, int width, int height, int x, int y)
   {
-    int min = image[y * width + x];
+    int min = std::abs(image[y * width + x]);
     for (int j = -1; j < 2; j++)
     {
       int cy = y + j;
@@ -119,7 +136,7 @@ namespace cpu
 
         int pos = cx + cy * width;
         if (image[pos])
-          min = std::min(image[pos], min);
+          min = std::min(std::abs(image[pos]), min);
       }
     }
 
@@ -137,7 +154,7 @@ namespace cpu
         if (image[pos] != 0)
         {
           int min  = get_min_neighbourg(image, width, height, x, y);
-          int cmin = image[pos];
+          int cmin = std::abs(image[pos]);
 
           if (min < cmin)
           {
@@ -158,10 +175,9 @@ namespace cpu
     while (changed)
       changed = propaged_label(image, width, height);
 
-    // relabel(L); // Make label continuous
-    // ==> Why ?
+    int nb_label = relabel(image, width, height);
 
-    auto ret = compute_find(image, width, height, minimum_pixel, false);
+    auto ret = compute_find(image, width, height, minimum_pixel, nb_label);
 
     return ret;
   }

@@ -53,7 +53,9 @@ json main_gpu_2(std::vector<std::string> vargv, png::image<png::rgb_pixel> ref, 
   auto h_ref_greyscale = cpu::greyscale(ref.get_pixbuf(), width, height);
 
   auto d_ref_greyscale = gpu::malloc_and_copy(h_ref_greyscale, width, height);
-  auto d_ref_smoothed  = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
+  std::free(h_ref_greyscale);
+
+  auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
   int* d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
   int* d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
@@ -67,8 +69,10 @@ json main_gpu_2(std::vector<std::string> vargv, png::image<png::rgb_pixel> ref, 
                            kernel_size_closing, binary_threshold, mode_cc, minimum_pixel, d_buffer_A, d_buffer_B);
   }
 
-  std::free(h_ref_greyscale);
   gpu::my_cuda_free(d_ref_smoothed);
+
+  gpu::my_cuda_free(d_buffer_A);
+  gpu::my_cuda_free(d_buffer_B);
 
   return ret;
 }

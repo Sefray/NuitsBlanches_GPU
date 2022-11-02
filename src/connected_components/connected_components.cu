@@ -24,7 +24,7 @@ namespace gpu
     if (x >= width || y >= height)
       return;
 
-    d_in_out[p] *= (p + 2);
+    d_in_out[p] *= -(p + 2);
   }
 
   void init_label(int* d_in_out, int width, int height)
@@ -42,21 +42,56 @@ namespace gpu
       errx(1, "Computation Error");
   }
 
+  __global__ void relabel(int* d_in_out, int* d_r, int width, int height)
+  {
+    int p = blockDim.x * blockIdx.x + threadIdx.x;
+
+    int x = p % width;
+    int y = p / width;
+
+    if (x >= width || y >= height)
+      return;
+
+    if (d_in_out[p] < 0)
+    {
+      int v       = atomicAdd(d_r, 1) + 1;
+      d_in_out[p] = -v;
+    }
+  }
+
+  int relabel(int* d_in_out, int width, int height)
+  {
+    int  r   = 0;
+    int* h_r = &r;
+    int* d_r = my_cuda_calloc(sizeof(int));
+
+    int bsize = 256;
+    int g     = std::ceil(((float)(width * height)) / bsize);
+
+    dim3 dimBlock(bsize);
+    dim3 dimGrid(g);
+
+    relabel<<<dimGrid, dimBlock>>>(d_in_out, d_r, width, height);
+    cudaDeviceSynchronize();
+
+    if (cudaPeekAtLastError())
+      errx(1, "Computation Error");
+
+    cudaMemcpy(h_r, d_r, sizeof(int), cudaMemcpyDeviceToHost);
+
+    my_cuda_free(d_r);
+
+    return *h_r;
+  }
+
   namespace one
   {
-    __global__ void gpu_propaged_label(int* d_in_out, bool* changed, int width, int height)
+    __device__ int get_min_neighbourg(int* d_in_out, int p, int x, int y, int width, int height)
     {
-      int p = blockDim.x * blockIdx.x + threadIdx.x;
-
-      int x = p % width;
-      int y = p / width;
-
-      if (x >= width || y >= height || d_in_out[p] == 0)
-        return;
-
-      int cmin = d_in_out[p];
-
       int min = d_in_out[p];
+      if (min < 0)
+        min *= -1;
+
       for (int j = -1; j < 2; j++)
       {
         int cy = y + j;
@@ -71,10 +106,30 @@ namespace gpu
 
           int pos  = cx + cy * width;
           int cpos = d_in_out[pos];
+          if (cpos < 0)
+            cpos *= -1;
           if (cpos && cpos < min)
             min = cpos;
         }
       }
+
+      return min;
+    }
+
+    __global__ void gpu_propaged_label(int* d_in_out, bool* changed, int width, int height)
+    {
+      int p = blockDim.x * blockIdx.x + threadIdx.x;
+
+      int x = p % width;
+      int y = p / width;
+
+      if (x >= width || y >= height || d_in_out[p] == 0)
+        return;
+
+      int min  = get_min_neighbourg(d_in_out, p, x, y, width, height);
+      int cmin = d_in_out[p];
+      if (cmin < 0)
+        cmin *= -1;
 
       if (min < cmin)
       {
@@ -124,12 +179,14 @@ namespace gpu
           errx(1, "Fail buffer copy to host");
       }
 
+      int r = relabel(d_in_out, width, height);
+
       int* h = static_cast<int*>(std::malloc(sizeof(int) * width * height));
       rc     = cudaMemcpy(h, d_in_out, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
       if (rc)
         errx(1, "Fail buffer copy to host");
 
-      auto ret = cpu::compute_find(h, width, height, minimum_pixel, false);
+      auto ret = cpu::compute_find(h, width, height, minimum_pixel, r);
 
       std::free(h);
 
@@ -231,11 +288,13 @@ namespace gpu
           errx(1, "Fail buffer copy to host");
       }
 
+      int r = relabel(d_A, width, height);
+
       rc = cudaMemcpy(h, d_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
       if (rc)
         errx(1, "Fail buffer copy to host");
 
-      auto ret = cpu::compute_find(h, width, height, minimum_pixel, false);
+      auto ret = cpu::compute_find(h, width, height, minimum_pixel, r);
 
       return ret;
     }

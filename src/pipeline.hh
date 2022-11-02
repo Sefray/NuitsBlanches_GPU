@@ -41,7 +41,7 @@ namespace cpu
 
   void binary_image(int* image, int width, int height, int threshold);
 
-  std::set<std::vector<int>> compute_find(int* image, int width, int height, int minimum_pixel, bool from_union);
+  std::set<std::vector<int>> compute_find(int* image, int width, int height, int minimum_pixel, int nb_boxes);
   std::set<std::vector<int>> get_connected_components(int* image, int width, int height, enum mode_cc mode_cc,
                                                       int minimum_pixel);
 
