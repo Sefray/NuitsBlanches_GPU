@@ -26,6 +26,16 @@ enum mode_cc
   union_find,
 };
 
+struct Box
+{
+  int xmin;
+  int ymin;
+  int xmax;
+  int ymax;
+
+  int size;
+};
+
 namespace cpu
 {
   int* greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height);

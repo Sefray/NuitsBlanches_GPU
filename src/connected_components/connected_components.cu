@@ -42,7 +42,7 @@ namespace gpu
       errx(1, "Computation Error");
   }
 
-  __global__ void relabel(int* d_in_out, int* d_r, int width, int height)
+  __global__ void gpu_relabel(int* d_in_out, int* d_r, int width, int height)
   {
     int p = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -71,7 +71,7 @@ namespace gpu
     dim3 dimBlock(bsize);
     dim3 dimGrid(g);
 
-    relabel<<<dimGrid, dimBlock>>>(d_in_out, d_r, width, height);
+    gpu_relabel<<<dimGrid, dimBlock>>>(d_in_out, d_r, width, height);
     cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
@@ -84,75 +84,148 @@ namespace gpu
     return *h_r;
   }
 
-  namespace one
+  __global__ void gpu_compute_find(int* d_image, int width, int height, Box* d_boxes)
   {
-    __device__ int get_min_neighbourg(int* d_in_out, int p, int x, int y, int width, int height)
-    {
-      int min = d_in_out[p];
-      if (min < 0)
-        min *= -1;
+    int p = blockDim.x * blockIdx.x + threadIdx.x;
 
-      for (int j = -1; j < 2; j++)
+    int x = p % width;
+    int y = p / width;
+
+    if (x >= width || y >= height)
+      return;
+
+    int l = d_image[x + y * width];
+    if (!l)
+      return;
+
+    while (l > 0)
+      l = d_image[l - 2];
+
+    atomicMin(&(d_boxes[-l].xmin), x);
+    atomicMin(&(d_boxes[-l].ymin), y);
+    atomicMax(&(d_boxes[-l].xmax), x);
+    atomicMax(&(d_boxes[-l].ymax), y);
+
+    atomicAdd(&(d_boxes[-l].size), 1);
+  }
+
+  std::set<std::vector<int>> compute_find(int* d_in, int width, int height, int minimum_pixel, int nb_boxes)
+  {
+    int  rc      = cudaSuccess;
+    Box* h_boxes = static_cast<Box*>(std::calloc(nb_boxes + 1, sizeof(Box)));
+    for (int i = 1; i < nb_boxes + 1; i++)
+    {
+      h_boxes[i].xmin = width;
+      h_boxes[i].ymin = height;
+    }
+
+    Box* d_boxes;
+    rc = cudaMalloc(&d_boxes, sizeof(Box) * (nb_boxes + 1));
+    if (rc)
+      errx(1, "Error malloc boxes");
+    rc = cudaMemcpy(d_boxes, h_boxes, sizeof(Box) * (nb_boxes + 1), cudaMemcpyHostToDevice);
+    if (rc)
+      errx(1, "Error memcpy h->d boxes");
+
+    int bsize = 256;
+    int g     = std::ceil(((float)(width * height)) / bsize);
+
+    dim3 dimBlock(bsize);
+    dim3 dimGrid(g);
+
+    gpu_compute_find<<<dimGrid, dimBlock>>>(d_in, width, height, d_boxes);
+    cudaDeviceSynchronize();
+
+    if (cudaPeekAtLastError())
+      errx(1, "Computation Error");
+
+    rc = cudaMemcpy(h_boxes, d_boxes, sizeof(Box) * (nb_boxes + 1), cudaMemcpyDeviceToHost);
+    if (rc)
+      errx(1, "Error memcpy d->h boxes");
+
+    std::set<std::vector<int>> ret;
+    for (int i = 1; i < nb_boxes + 1; i++)
+    {
+      auto& box = h_boxes[i];
+      if (box.size > minimum_pixel)
+        ret.insert({box.xmin, box.ymin, box.xmax - box.xmin + 1, box.ymax - box.ymin + 1});
+    }
+
+    std::free(h_boxes);
+    cudaFree(d_boxes);
+
+    return ret;
+  }
+
+  __device__ int get_min_neighbourg(int* d_in_out, int p, int x, int y, int width, int height)
+  {
+    int min = d_in_out[p];
+    if (min < 0)
+      min *= -1;
+
+    for (int j = -1; j < 2; j++)
+    {
+      int cy = y + j;
+      if (!(0 <= cy && cy < height))
+        continue;
+
+      for (int i = -1; i < 2; i++)
       {
-        int cy = y + j;
-        if (!(0 <= cy && cy < height))
+        int cx = x + i;
+        if (!(0 <= cx && cx < width))
           continue;
 
-        for (int i = -1; i < 2; i++)
-        {
-          int cx = x + i;
-          if (!(0 <= cx && cx < width))
-            continue;
-
-          int pos  = cx + cy * width;
-          int cpos = d_in_out[pos];
-          if (cpos < 0)
-            cpos *= -1;
-          if (cpos && cpos < min)
-            min = cpos;
-        }
-      }
-
-      return min;
-    }
-
-    __global__ void gpu_propaged_label(int* d_in_out, bool* changed, int width, int height)
-    {
-      int p = blockDim.x * blockIdx.x + threadIdx.x;
-
-      int x = p % width;
-      int y = p / width;
-
-      if (x >= width || y >= height || d_in_out[p] == 0)
-        return;
-
-      int min  = get_min_neighbourg(d_in_out, p, x, y, width, height);
-      int cmin = d_in_out[p];
-      if (cmin < 0)
-        cmin *= -1;
-
-      if (min < cmin)
-      {
-        *changed    = true;
-        d_in_out[p] = min;
+        int pos  = cx + cy * width;
+        int cpos = d_in_out[pos];
+        if (cpos < 0)
+          cpos *= -1;
+        if (cpos && cpos < min)
+          min = cpos;
       }
     }
 
-    void propaged_label(int* d_in_out, bool* d_changed, int width, int height)
+    return min;
+  }
+
+  __global__ void gpu_propaged_label(int* d_in, int* d_out, bool* changed, int width, int height)
+  {
+    int p = blockDim.x * blockIdx.x + threadIdx.x;
+
+    int x = p % width;
+    int y = p / width;
+
+    if (x >= width || y >= height || d_in[p] == 0)
+      return;
+
+    int min  = get_min_neighbourg(d_in, p, x, y, width, height);
+    int cmin = d_in[p];
+    if (cmin < 0)
+      cmin *= -1;
+
+    if (min < cmin)
     {
-      int bsize = 256;
-      int g     = std::ceil(((float)(width * height)) / bsize);
-
-      dim3 dimBlock(bsize);
-      dim3 dimGrid(g);
-
-      gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in_out, d_changed, width, height);
-      cudaDeviceSynchronize();
-
-      if (cudaPeekAtLastError())
-        errx(1, "Computation Error");
+      *changed = true;
+      d_out[p] = min;
     }
+  }
 
+  void propaged_label(int* d_in, int* d_out, bool* d_changed, int width, int height)
+  {
+    int bsize = 256;
+    int g     = std::ceil(((float)(width * height)) / bsize);
+
+    dim3 dimBlock(bsize);
+    dim3 dimGrid(g);
+
+    gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in, d_out, d_changed, width, height);
+    cudaDeviceSynchronize();
+
+    if (cudaPeekAtLastError())
+      errx(1, "Computation Error");
+  }
+
+  namespace one
+  {
     std::set<std::vector<int>> get_connected_components(int* d_in_out, int width, int height, int minimum_pixel)
     {
       init_label(d_in_out, width, height);
@@ -172,7 +245,7 @@ namespace gpu
         if (rc)
           errx(1, "Fail buffer copy to device");
 
-        propaged_label(d_in_out, d_changed, width, height);
+        propaged_label(d_in_out, d_in_out, d_changed, width, height);
 
         rc = cudaMemcpy(h_changed, d_changed, sizeof(bool), cudaMemcpyDeviceToHost);
         if (rc)
@@ -181,14 +254,7 @@ namespace gpu
 
       int r = relabel(d_in_out, width, height);
 
-      int* h = static_cast<int*>(std::malloc(sizeof(int) * width * height));
-      rc     = cudaMemcpy(h, d_in_out, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-
-      auto ret = cpu::compute_find(h, width, height, minimum_pixel, r);
-
-      std::free(h);
+      auto ret = compute_find(d_in_out, width, height, minimum_pixel, r);
 
       return ret;
     }
@@ -196,62 +262,6 @@ namespace gpu
 
   namespace two
   {
-    __global__ void gpu_propaged_label(int* d_in, int* d_out, bool* changed, int width, int height)
-    {
-      int p = blockDim.x * blockIdx.x + threadIdx.x;
-
-      int x = p % width;
-      int y = p / width;
-
-      if (x >= width || y >= height || d_in[p] == 0)
-        return;
-
-      int cmin = d_in[p];
-
-      int min = d_in[p];
-      for (int j = -1; j < 2; j++)
-      {
-        int cy = y + j;
-        if (!(0 <= cy && cy < height))
-          continue;
-
-        for (int i = -1; i < 2; i++)
-        {
-          int cx = x + i;
-          if (!(0 <= cx && cx < width))
-            continue;
-
-          int pos  = cx + cy * width;
-          int cpos = d_in[pos];
-          if (cpos && cpos < min)
-            min = cpos;
-        }
-      }
-
-      if (min < cmin)
-      {
-        *changed = true;
-        cmin     = min;
-      }
-
-      d_out[p] = cmin;
-    }
-
-    void propaged_label(int* d_in, int* d_out, bool* d_changed, int width, int height)
-    {
-      int bsize = 256;
-      int g     = std::ceil(((float)(width * height)) / bsize);
-
-      dim3 dimBlock(bsize);
-      dim3 dimGrid(g);
-
-      gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in, d_out, d_changed, width, height);
-      cudaDeviceSynchronize();
-
-      if (cudaPeekAtLastError())
-        errx(1, "Computation Error");
-    }
-
     void swap(int** a, int** b)
     {
       auto tmp = *a;
@@ -290,11 +300,7 @@ namespace gpu
 
       int r = relabel(d_A, width, height);
 
-      rc = cudaMemcpy(h, d_A, sizeof(int) * width * height, cudaMemcpyDeviceToHost);
-      if (rc)
-        errx(1, "Fail buffer copy to host");
-
-      auto ret = cpu::compute_find(h, width, height, minimum_pixel, r);
+      auto ret = compute_find(d_A, width, height, minimum_pixel, r);
 
       return ret;
     }

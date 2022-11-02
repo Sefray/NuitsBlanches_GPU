@@ -4,16 +4,6 @@
 
 namespace cpu
 {
-  struct Box
-  {
-    int xmin;
-    int ymin;
-    int xmax;
-    int ymax;
-
-    int size;
-  };
-
   void compute_union(int* image, int width, int height)
   {
     for (int y = 0; y < height; y++)

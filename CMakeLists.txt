@@ -5,6 +5,7 @@ set(CMAKE_CUDA_ARCHITECTURES "61")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Werror -Wextra -pedantic -O3")
+set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -W")
 
 find_package(PNG REQUIRED)
 find_package(nlohmann_json 3.10.5 REQUIRED)
