@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   int width  = ref.get_width();
   int height = ref.get_height();
 
-  std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2};
+  std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3};
 
   json ret = main_func[mode](vargv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
                              binary_threshold, mode_cc, minimum_pixel);

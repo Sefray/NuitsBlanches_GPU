@@ -12,12 +12,13 @@ enum mode
   CPU,
   GPU_1,
   GPU_2,
+  GPU_3,
 };
 
 enum mask_type
 {
   square,
-  // disk,
+  disk,
 };
 
 enum mode_cc
@@ -95,4 +96,13 @@ namespace gpu
                                         int* d_buffer_B);
   } // namespace two
 
+  namespace three
+  {
+    void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
+
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
+                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
+                                        int* d_buffer_B);
+  } // namespace three
 } // namespace gpu
