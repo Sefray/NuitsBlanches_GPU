@@ -67,11 +67,11 @@ BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_cpu_slide, std::string("../data
                   std::string("../data/scia_premium_0002.png"), CPU, slide);
 BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_cpu_union_find, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), CPU, union_find);
-BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_first, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_one, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), GPU_1, slide);
-BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_second, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_two, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), GPU_2, slide);
-BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_second, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_three, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), GPU_3, slide);
 
 
@@ -79,11 +79,11 @@ BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_cpu_slide, std::string("..
                   std::string("../data/scia_premium_2/"), CPU, slide);
 BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_cpu_union_find, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_2/"), CPU, union_find);
-BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_first, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_one, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_2/"), GPU_1, slide);
-BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_second, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_two, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_2/"), GPU_2, slide);
-BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_second, std::string("../data/scia_premium_0001.png"),
+BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_three, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_2/"), GPU_3, slide);
 
 BENCHMARK_MAIN();
