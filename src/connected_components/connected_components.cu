@@ -36,7 +36,6 @@ namespace gpu
     dim3 dimGrid(g);
 
     gpu_init_label<<<dimGrid, dimBlock>>>(d_in_out, width, height);
-    cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");
@@ -72,7 +71,6 @@ namespace gpu
     dim3 dimGrid(g);
 
     gpu_relabel<<<dimGrid, dimBlock>>>(d_in_out, d_r, width, height);
-    cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");
@@ -134,7 +132,6 @@ namespace gpu
     dim3 dimGrid(g);
 
     gpu_compute_find<<<dimGrid, dimBlock>>>(d_in, width, height, d_boxes);
-    cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");
@@ -218,7 +215,6 @@ namespace gpu
     dim3 dimGrid(g);
 
     gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in, d_out, d_changed, width, height);
-    cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");

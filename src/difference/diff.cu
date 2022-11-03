@@ -29,7 +29,6 @@ namespace gpu
       dim3 dimGrid(g);
 
       gpu_difference<<<dimGrid, dimBlock>>>(d_ref_in, d_in, d_out, width, height);
-      cudaDeviceSynchronize();
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
@@ -51,7 +50,6 @@ namespace gpu
       dim3 dimGrid(g);
 
       gpu_difference<<<dimGrid, dimBlock>>>(d_ref_in, d_in, d_out, width, height);
-      cudaDeviceSynchronize();
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");

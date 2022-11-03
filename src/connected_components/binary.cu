@@ -24,7 +24,6 @@ namespace gpu
     dim3 dimGrid(g);
 
     gpu_binary_image<<<dimGrid, dimBlock>>>(d_in_out, width, height, threshold);
-    cudaDeviceSynchronize();
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");

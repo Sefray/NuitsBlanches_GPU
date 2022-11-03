@@ -60,7 +60,6 @@ namespace gpu
       dim3 dimGrid(g);
 
       gpu_smoothing<<<dimGrid, dimBlock>>>(d_in, d_out, kernel, width, height, kernel_size, ks2);
-      cudaDeviceSynchronize();
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
@@ -113,7 +112,6 @@ namespace gpu
       dim3 dimGrid(g);
 
       gpu_smoothing<<<dimGrid, dimBlock>>>(d_in, d_out, kernel, width, height, kernel_size, ks2);
-      cudaDeviceSynchronize();
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
