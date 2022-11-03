@@ -109,7 +109,7 @@ namespace cpu
         image[x + y * width] *= -(x + y * width + 2);
   }
 
-  int get_min_neighbourg(int* image, int width, int height, int x, int y)
+  int get_min_neighbor(int* image, int width, int height, int x, int y)
   {
     int min = std::abs(image[y * width + x]);
     for (int j = -1; j < 2; j++)
@@ -143,7 +143,7 @@ namespace cpu
         int pos = x + y * width;
         if (image[pos] != 0)
         {
-          int min  = get_min_neighbourg(image, width, height, x, y);
+          int min  = get_min_neighbor(image, width, height, x, y);
           int cmin = std::abs(image[pos]);
 
           if (min < cmin)

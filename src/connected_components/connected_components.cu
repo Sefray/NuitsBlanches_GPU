@@ -157,7 +157,7 @@ namespace gpu
     return ret;
   }
 
-  __device__ int get_min_neighbourg(int* d_in_out, int p, int x, int y, int width, int height)
+  __device__ int get_min_neighbor(int* d_in_out, int p, int x, int y, int width, int height)
   {
     int min = d_in_out[p];
     if (min < 0)
@@ -197,7 +197,7 @@ namespace gpu
     if (x >= width || y >= height || d_in[p] == 0)
       return;
 
-    int min  = get_min_neighbourg(d_in, p, x, y, width, height);
+    int min  = get_min_neighbor(d_in, p, x, y, width, height);
     int cmin = d_in[p];
     if (cmin < 0)
       cmin *= -1;
