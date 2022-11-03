@@ -46,16 +46,16 @@ namespace gpu
 
     int v = kernel[ks2 * kernel_size + ks2] * d_in[y * width + x];
 
-    for (int i = -ks2; i <= ks2; i++)
+    for (int j = -ks2; j <= ks2; j++)
     {
-      int cx = x + i;
-      if (cx < 0 || cx >= width)
+      int cy = y + j;
+      if (cy < 0 || cy >= height)
         continue;
 
-      for (int j = -ks2; j <= ks2; j++)
+      for (int i = -ks2; i <= ks2; i++)
       {
-        int cy = y + j;
-        if (cy < 0 || cy >= height)
+        int cx = x + i;
+        if (cx < 0 || cx >= width)
           continue;
 
         int ci = i + ks2;
