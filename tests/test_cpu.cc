@@ -83,6 +83,35 @@ TEST(Smoothing, smoothing_ones)
   std::free(out);
 }
 
+TEST(Create_mask, square)
+{
+  int size_mask = 3;
+
+  int ref[] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+  auto out = create_mask(size_mask, square);
+
+  check_img(ref, out, size_mask, size_mask);
+
+  std::free(out);
+}
+
+TEST(Create_mask, disk)
+{
+  int size_mask = 3;
+
+  int ref[] = {0, 1, 0,
+              1, 1, 1,
+              0, 1, 0};
+
+  auto out = create_mask(size_mask, disk);
+
+  check_img(ref, out, size_mask, size_mask);
+
+  std::free(out);
+}
+
+
 TEST(Closing_Opening, erosion_single_square)
 {
   int  size_mask = 3;

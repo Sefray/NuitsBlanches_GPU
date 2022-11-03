@@ -15,6 +15,20 @@ namespace cpu
         for (int y = 0; y < kernel_size; y++)
           ret[y * kernel_size + x] = 1;
       break;
+    case disk:
+      int   ks2  = kernel_size / 2;
+      int ks2s = ks2 * ks2;
+      for (int x = 0; x < kernel_size; x++)
+        for (int y = 0; y < kernel_size; y++)
+        {
+          int cx = x - ks2;
+          int cy = y - ks2;
+
+          int square_dist_center = cx * cx + cy * cy;
+          if (square_dist_center <= ks2s)
+            ret[y * kernel_size + x] = 1;
+        }
+      break;
     }
 
     return ret;
