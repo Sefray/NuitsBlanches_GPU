@@ -256,7 +256,7 @@ namespace gpu
     }
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     void swap(int** a, int** b)
     {
@@ -300,5 +300,93 @@ namespace gpu
 
       return ret;
     }
-  } // namespace two
+  } // namespace one::two
+
+  namespace one::two::three::four
+  {
+    __global__ void gpu_propaged_label(int* d_in, int* d_out, bool* changed, int width, int height)
+    {
+      int p = blockDim.x * blockIdx.x + threadIdx.x * 8;
+
+      int x = p % width;
+      int y = p / width;
+
+      if (x >= width || y >= height || d_in[p] == 0)
+        return;
+
+      for (int s = 0; s < 8; s++)
+      {
+        int min  = get_min_neighbor(d_in, p, x, y, width, height);
+        int cmin = d_in[p];
+        if (cmin < 0)
+          cmin *= -1;
+
+        if (min < cmin)
+        {
+          *changed = true;
+          d_out[p] = min;
+        }
+
+        x++;
+        if (!(x %= width))
+        {
+          y++;
+          if (!(y %= height))
+            break;
+        }
+
+        p++;
+      }
+    }
+
+    void propaged_label(int* d_in, int* d_out, bool* d_changed, int width, int height)
+    {
+      int bsize = 256;
+      int g     = std::ceil(((float)(width * height)) / bsize);
+
+      dim3 dimBlock(bsize / 8);
+      dim3 dimGrid(g);
+
+      gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in, d_out, d_changed, width, height);
+
+      if (cudaPeekAtLastError())
+        errx(1, "Computation Error");
+    }
+
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
+                                                        int minimum_pixel)
+    {
+      init_label(d_A, width, height);
+      cudaMemset((void*)d_B, 0, sizeof(int) * width * height);
+
+      bool  changed   = true;
+      bool* h_changed = &changed;
+
+      bool* d_changed;
+      int   rc = cudaMalloc(&d_changed, sizeof(bool));
+      if (rc)
+        errx(1, "Fail changed allocation");
+
+      while (changed)
+      {
+        changed = false;
+        rc      = cudaMemcpy(d_changed, h_changed, sizeof(bool), cudaMemcpyHostToDevice);
+        if (rc)
+          errx(1, "Fail buffer copy to device");
+
+        propaged_label(d_A, d_B, d_changed, width, height);
+        swap(&d_A, &d_B);
+
+        rc = cudaMemcpy(h_changed, d_changed, sizeof(bool), cudaMemcpyDeviceToHost);
+        if (rc)
+          errx(1, "Fail buffer copy to host");
+      }
+
+      int r = relabel(d_A, width, height);
+
+      auto ret = compute_find(d_A, width, height, minimum_pixel, r);
+
+      return ret;
+    }
+  } // namespace one::two::three::four
 } // namespace gpu

@@ -88,7 +88,7 @@ namespace gpu
     }
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
@@ -121,9 +121,9 @@ namespace gpu
 
       return components;
     }
-  } // namespace two
+  } // namespace one::two
 
-  namespace three
+  namespace one::two::three
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
@@ -138,10 +138,10 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      two::smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
 
       // 3.Difference
-      two::compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
+      compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
 
       // 4.Closing/opening with disk or rectangle
       three::closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing);
@@ -150,11 +150,46 @@ namespace gpu
       binary_image(d_buffer_A, width, height, binary_threshold);
 
       // 5.2.Lakes
-      auto components = two::get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
 
       std::free(h_greyscale);
 
       return components;
     }
-  } // namespace two
+  } // namespace one::two::three
+
+  namespace one::two::three::four
+  {
+    std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
+                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
+                                        int* d_buffer_B)
+    {
+      // 1.Greyscale
+      auto h_greyscale = cpu::greyscale(h_input, width, height);
+
+      // Buffer Allocation
+      my_cuda_mem_copy(h_greyscale, d_buffer_A, sizeof(int) * width * height);
+      my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
+
+      // 2.Smooth (gaussian filter)
+      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+
+      // 3.Difference
+      compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
+
+      // 4.Closing/opening with disk or rectangle
+      closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing);
+
+      // 5.1.Thresh image
+      binary_image(d_buffer_A, width, height, binary_threshold);
+
+      // 5.2.Lakes
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
+
+      std::free(h_greyscale);
+
+      return components;
+    }
+  } // namespace one::two::three
 } // namespace gpu

@@ -137,22 +137,40 @@ namespace cpu
   {
     bool changed = false;
 
-    for (int y = 0; y < height; y++)
-      for (int x = 0; x < width; x++)
+    // for (int y = 0; y < height; y++)
+    //   for (int x = 0; x < width; x++)
+    //   {
+
+    for (int p = 0; p < width * height;)
+    {
+      for (int s = 0; s < 8; s++)
       {
-        int pos = x + y * width;
-        if (image[pos] != 0)
+        int x = p % width;
+        int y = p / width;
+
+        if (image[p] != 0)
         {
           int min  = get_min_neighbor(image, width, height, x, y);
-          int cmin = std::abs(image[pos]);
+          int cmin = std::abs(image[p]);
 
           if (min < cmin)
           {
-            changed    = true;
-            image[pos] = min;
+            changed  = true;
+            image[p] = min;
           }
         }
+
+        p++;
+        x++;
+        if (!(x %= width))
+        {
+          y++;
+          if (!(y %= height))
+            break;
+        }
+
       }
+    }
 
     return changed;
   }

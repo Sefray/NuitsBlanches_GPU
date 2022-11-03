@@ -32,7 +32,7 @@ namespace gpu
   }
 
   __global__ void gpu_kernel_func(int* d_in, int* d_out, int width, int height, int* kernel, int kernel_size, int ks2,
-                                  int mx, int my, enum type_oc type)
+                                  enum type_oc type)
   {
     int p = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -46,13 +46,13 @@ namespace gpu
 
     int v = kernel[ks2 * kernel_size + ks2] * d_in[y * width + x];
 
-    for (int j = -ks2 * my; j <= ks2 * my; j++)
+    for (int j = -ks2; j <= ks2; j++)
     {
       int cy = y + j;
       if (cy < 0 || cy >= height)
         continue;
 
-      for (int i = -ks2 * mx; i <= ks2 * mx; i++)
+      for (int i = -ks2; i <= ks2; i++)
       {
         int cx = x + i;
         if (cx < 0 || cx >= width)
@@ -80,8 +80,7 @@ namespace gpu
       dim3 dimBlock(bsize);
       dim3 dimGrid(g);
 
-      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, 1, 1,
-                                             type);
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, type);
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
@@ -109,7 +108,7 @@ namespace gpu
     }
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     void kernel_func(int* d_in, int* d_out, int width, int height, int* kernel, int kernel_size, enum type_oc type)
     {
@@ -119,8 +118,7 @@ namespace gpu
       dim3 dimBlock(bsize);
       dim3 dimGrid(g);
 
-      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, 1, 1,
-                                             type);
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in, d_out, width, height, kernel, kernel_size, kernel_size / 2, type);
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
@@ -140,10 +138,48 @@ namespace gpu
       kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, EROSION);
       cudaFree(mask);
     }
-  } // namespace two
+  } // namespace one::two
 
-  namespace three
+  namespace one::two::three
   {
+    __global__ void gpu_kernel_func(int* d_in, int* d_out, int width, int height, int* kernel, int kernel_size, int mx,
+                                    int my, enum type_oc type)
+    {
+      int p = blockDim.x * blockIdx.x + threadIdx.x;
+
+      int x = p % width;
+      int y = p / width;
+
+      if (x >= width || y >= height)
+        return;
+
+      int  ks2 = kernel_size / 2;
+      auto f   = type == EROSION ? erosion : dilatation;
+
+      int v = kernel[ks2 * kernel_size + ks2] * d_in[y * width + x];
+
+      for (int j = -ks2 * my; j <= ks2 * my; j++)
+      {
+        int cy = y + j;
+        if (cy < 0 || cy >= height)
+          continue;
+
+        for (int i = -ks2 * mx; i <= ks2 * mx; i++)
+        {
+          int cx = x + i;
+          if (cx < 0 || cx >= width)
+            continue;
+
+          int ci = i + ks2;
+          int cj = j + ks2;
+
+          v = f(kernel[cj * kernel_size + ci] * d_in[cy * width + cx], v);
+        }
+      }
+
+      d_out[y * width + x] = v;
+    }
+
     void kernel_func(int* d_in_out, int* d_tmp, int width, int height, int* kernel, int kernel_size, enum type_oc type)
     {
       int bsize = 256;
@@ -152,11 +188,8 @@ namespace gpu
       dim3 dimBlock(bsize);
       dim3 dimGrid(g);
 
-      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in_out, d_tmp, width, height, kernel, kernel_size, kernel_size / 2, 1, 0,
-                                             type);
-      cudaDeviceSynchronize();
-      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_tmp, d_in_out, width, height, kernel, kernel_size, kernel_size / 2, 0, 1,
-                                             type);
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_in_out, d_tmp, width, height, kernel, kernel_size, 1, 0, type);
+      gpu_kernel_func<<<dimGrid, dimBlock>>>(d_tmp, d_in_out, width, height, kernel, kernel_size, 0, 1, type);
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
@@ -176,5 +209,5 @@ namespace gpu
       kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, EROSION);
       cudaFree(mask);
     }
-  } // namespace three
+  } // namespace one::two::three
 } // namespace gpu

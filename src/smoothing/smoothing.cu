@@ -71,7 +71,7 @@ namespace gpu
     }
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     __global__ void gpu_smoothing(int* d_in, int* d_out, float* kernel, int width, int height, int kernel_size, int ks2)
     {

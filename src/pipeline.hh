@@ -13,6 +13,7 @@ enum mode
   GPU_1,
   GPU_2,
   GPU_3,
+  GPU_4,
 };
 
 enum mask_type
@@ -82,7 +83,7 @@ namespace gpu
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     void smoothing(int* d_in, int* d_out, int width, int height, int kernel_size);
     void compute_difference(int* d_ref_in, int* d_in, int* d_out, int width, int height);
@@ -94,9 +95,9 @@ namespace gpu
                                         int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B);
-  } // namespace two
+  } // namespace one::two
 
-  namespace three
+  namespace one::two::three
   {
     void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
 
@@ -104,5 +105,16 @@ namespace gpu
                                         int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B);
-  } // namespace three
+  } // namespace one::two::three
+
+  namespace one::two::three::four
+  {
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
+                                                        int minimum_pixel);
+
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
+                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
+                                        int* d_buffer_B);
+  } // namespace one::two::three::four
 } // namespace gpu

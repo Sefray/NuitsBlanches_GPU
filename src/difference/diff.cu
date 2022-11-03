@@ -39,7 +39,7 @@ namespace gpu
     }
   } // namespace one
 
-  namespace two
+  namespace one::two
   {
     void compute_difference(int* d_ref_in, int* d_in, int* d_out, int width, int height)
     {
