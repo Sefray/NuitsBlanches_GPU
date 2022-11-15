@@ -305,15 +305,15 @@ namespace gpu
   {
     __global__ void gpu_propaged_label(int* d_in, int* d_out, bool* changed, int width, int height)
     {
-      int p = blockDim.x * blockIdx.x + threadIdx.x * 8;
+      int p = blockDim.x * blockIdx.x + threadIdx.x;
 
       int x = p % width;
       int y = p / width;
 
-      if (x >= width || y >= height || d_in[p] == 0)
+      if (x >= width || y >= height || d_in[p] == 0 || !(p % 32))
         return;
 
-      for (int s = 0; s < 8; s++)
+      for (int s = 0; s < 32 && s + p < width * height; s++)
       {
         int min  = get_min_neighbor(d_in, p, x, y, width, height);
         int cmin = d_in[p];
@@ -326,6 +326,7 @@ namespace gpu
           d_out[p] = min;
         }
 
+        // Update (x, y) and p
         x++;
         if (!(x %= width))
         {
@@ -343,7 +344,7 @@ namespace gpu
       int bsize = 256;
       int g     = std::ceil(((float)(width * height)) / bsize);
 
-      dim3 dimBlock(bsize / 8);
+      dim3 dimBlock(bsize);
       dim3 dimGrid(g);
 
       gpu_propaged_label<<<dimGrid, dimBlock>>>(d_in, d_out, d_changed, width, height);

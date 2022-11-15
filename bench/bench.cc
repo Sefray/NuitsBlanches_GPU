@@ -9,6 +9,7 @@
 #include "mains.hh"
 #include "pipeline.hh"
 
+
 namespace fs = std::filesystem;
 
 void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::string modified_filename, enum mode mode,
@@ -29,7 +30,7 @@ void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::strin
     int width  = ref.cols;
     int height = ref.rows;
 
-    std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3};
+    std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3, main_gpu_4};
 
     main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
                     binary_threshold, mode_cc, minimum_pixel);
@@ -56,7 +57,7 @@ void BM_Detection_multiple(benchmark::State& st, std::string ref_filename, std::
     int width  = ref.cols;
     int height = ref.rows;
 
-    std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3};
+    std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3, main_gpu_4};
 
     main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
                     binary_threshold, mode_cc, minimum_pixel);
@@ -73,6 +74,8 @@ BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_two, std::string("../data/s
                   std::string("../data/scia_premium_0002.png"), GPU_2, slide);
 BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_three, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_0002.png"), GPU_3, slide);
+BENCHMARK_CAPTURE(BM_Detection_one, scia_premium_gpu_four, std::string("../data/scia_premium_0001.png"),
+                  std::string("../data/scia_premium_0002.png"), GPU_4, slide);
 
 
 BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_cpu_slide, std::string("../data/scia_premium_0001.png"),
@@ -85,5 +88,7 @@ BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_two, std::string("../d
                   std::string("../data/scia_premium_2/"), GPU_2, slide);
 BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_three, std::string("../data/scia_premium_0001.png"),
                   std::string("../data/scia_premium_2/"), GPU_3, slide);
+BENCHMARK_CAPTURE(BM_Detection_multiple, scia_premium_gpu_four, std::string("../data/scia_premium_0001.png"),
+                  std::string("../data/scia_premium_2/"), GPU_4, slide);
 
 BENCHMARK_MAIN();
