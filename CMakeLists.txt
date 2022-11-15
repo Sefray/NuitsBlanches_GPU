@@ -3,8 +3,8 @@ project (GPGPU CUDA CXX)
 
 set(CMAKE_CUDA_ARCHITECTURES "61")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Werror -Wextra -pedantic -fsanitize=address -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Werror -Wextra -pedantic -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Wextra -pedantic -fsanitize=address -g")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Wextra -pedantic -O3")
 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -W")
 
 find_package(PNG REQUIRED)
@@ -75,4 +75,4 @@ target_link_libraries(test GTest::gtest_main lib PNG::PNG)
 
 add_executable(bench bench/bench.cc)
 target_compile_features(bench PUBLIC cxx_std_20)
-target_link_libraries(bench PRIVATE lib benchmark::benchmark PNG::PNG)
+target_link_libraries(bench PRIVATE lib benchmark::benchmark ${OpenCV_LIBS} PNG::PNG)

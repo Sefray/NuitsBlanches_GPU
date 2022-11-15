@@ -1,6 +1,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <opencv2/core/utility.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <png++/png.hpp>
 
 #include "mains.hh"
@@ -51,14 +52,16 @@ int main(int argc, char* argv[])
   enum mode_cc mode_cc             = static_cast<enum mode_cc>(parser.get<int>("mode_cc"));
   int          minimum_pixel       = parser.get<int>("minimum_pixel");
 
-  png::image<png::rgb_pixel> ref(*argv);
+  auto ref = cv::imread(*argv, cv::IMREAD_COLOR);
 
-  int width  = ref.get_width();
-  int height = ref.get_height();
+  // png::image<png::rgb_pixel> ref(*argv);
+
+  int width  = ref.cols;
+  int height = ref.rows;
 
   std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3, main_gpu_4};
 
-  json ret = main_func[mode](vargv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+  json ret = main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
                              binary_threshold, mode_cc, minimum_pixel);
 
   std::cout << ret.dump(2) << std::endl;

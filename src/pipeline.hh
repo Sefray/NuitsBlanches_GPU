@@ -40,7 +40,7 @@ struct Box
 
 namespace cpu
 {
-  int* greyscale(png::pixel_buffer<png::rgb_pixel> image, int width, int height);
+  int* greyscale(unsigned char* image, int width, int height);
 
   float* init_gaussian_kernel(int kernel_size, float sigma = 1.0f);
   int*   smoothing(int* greyscale_image, int width, int height, int kernel_size);
@@ -57,8 +57,8 @@ namespace cpu
   std::set<std::vector<int>> get_connected_components(int* image, int width, int height, enum mode_cc mode_cc,
                                                       int minimum_pixel);
 
-  std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                      int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+  std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
+                                      int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                       int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
 } // namespace cpu
 
@@ -78,8 +78,8 @@ namespace gpu
     int* closing_opening(int* d_A, int width, int height, int kernel_size_opening, int kernel_size_closing);
     std::set<std::vector<int>> get_connected_components(int* d_in, int width, int height, int minimum_pixel);
 
-    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
+                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel);
   } // namespace one
 
@@ -91,8 +91,8 @@ namespace gpu
     std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
                                                         int minimum_pixel);
 
-    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
+                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B);
   } // namespace one::two
@@ -101,8 +101,8 @@ namespace gpu
   {
     void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
 
-    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
+                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B);
   } // namespace one::two::three
@@ -112,8 +112,8 @@ namespace gpu
     std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
                                                         int minimum_pixel);
 
-    std::set<std::vector<int>> pipeline(int* ref_smoothed, png::pixel_buffer<png::rgb_pixel> modified, int width,
-                                        int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+    std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
+                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B);
   } // namespace one::two::three::four

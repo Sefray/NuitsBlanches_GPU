@@ -57,7 +57,7 @@ namespace gpu
 
   namespace one
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel)
     {
@@ -90,7 +90,7 @@ namespace gpu
 
   namespace one::two
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B)
@@ -125,7 +125,7 @@ namespace gpu
 
   namespace one::two::three
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B)
@@ -160,7 +160,7 @@ namespace gpu
 
   namespace one::two::three::four
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, png::pixel_buffer<png::rgb_pixel> h_input, int width, int height,
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
                                         int* d_buffer_B)

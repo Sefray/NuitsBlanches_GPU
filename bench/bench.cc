@@ -2,7 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
-#include <png++/png.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <string>
 #include <vector>
 
@@ -24,15 +24,15 @@ void BM_Detection_one(benchmark::State& st, std::string ref_filename, std::strin
 
   for (auto _ : st)
   {
-    png::image<png::rgb_pixel> ref(ref_filename);
+    auto ref = cv::imread(ref_filename, cv::IMREAD_COLOR);
 
-    int width  = ref.get_width();
-    int height = ref.get_height();
+    int width  = ref.cols;
+    int height = ref.rows;
 
     std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3};
 
-    main_func[mode](vargv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold,
-                    mode_cc, minimum_pixel);
+    main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                    binary_threshold, mode_cc, minimum_pixel);
   }
 }
 
@@ -51,15 +51,15 @@ void BM_Detection_multiple(benchmark::State& st, std::string ref_filename, std::
 
   for (auto _ : st)
   {
-    png::image<png::rgb_pixel> ref(ref_filename);
+    auto ref = cv::imread(ref_filename, cv::IMREAD_COLOR);
 
-    int width  = ref.get_width();
-    int height = ref.get_height();
+    int width  = ref.cols;
+    int height = ref.rows;
 
     std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3};
 
-    main_func[mode](vargv, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold,
-                    mode_cc, minimum_pixel);
+    main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                    binary_threshold, mode_cc, minimum_pixel);
   }
 }
 
