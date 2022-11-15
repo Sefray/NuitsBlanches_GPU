@@ -22,6 +22,7 @@ target_sources(lib PRIVATE
     src/pipeline.cu
 
     src/greyscale/greyscale.cc
+    src/greyscale/greyscale.cu
     src/smoothing/smoothing.cc
     src/smoothing/smoothing.cu
     src/difference/diff.cc

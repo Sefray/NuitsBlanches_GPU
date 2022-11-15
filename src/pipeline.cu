@@ -57,15 +57,21 @@ namespace gpu
 
   namespace one
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
-                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel)
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
+                                        int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                                        enum mode_cc mode_cc, int minimum_pixel)
     {
-      // 1.Greyscale
-      auto h_greyscale = cpu::greyscale(h_input, width, height);
+      unsigned char* d_input;
 
-      int* d_greyscale = malloc_and_copy(h_greyscale, width, height);
-      std::free(h_greyscale);
+      int rc = cudaMalloc(&d_input, sizeof(unsigned char) * width * height * 3);
+      if (rc)
+        errx(1, "Error in buffer_uc allocation");
+      rc = cudaMemcpy(d_input, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
+      if (rc)
+        errx(1, "Error in buffer_uc copy");
+
+      // 1.Greyscale
+      auto d_greyscale = greyscale(d_input, width, height);
 
       // 2.Smooth (gaussian filter)
       auto d_smoothed = smoothing(d_greyscale, width, height, kernel_size);
@@ -90,16 +96,17 @@ namespace gpu
 
   namespace one::two
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
-                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
-                                        int* d_buffer_B)
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
+                                        int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                                        enum mode_cc mode_cc, int minimum_pixel, unsigned char* d_buffer_uc,
+                                        int* d_buffer_A, int* d_buffer_B)
     {
+      cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
+
       // 1.Greyscale
-      auto h_greyscale = cpu::greyscale(h_input, width, height);
+      greyscale(d_buffer_uc, d_buffer_A, width, height);
 
       // Buffer Allocation
-      my_cuda_mem_copy(h_greyscale, d_buffer_A, sizeof(int) * width * height);
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
@@ -115,9 +122,7 @@ namespace gpu
       binary_image(d_buffer_A, width, height, binary_threshold);
 
       // 5.2.Lakes
-      auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
-
-      std::free(h_greyscale);
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, width, height, minimum_pixel);
 
       return components;
     }
@@ -125,16 +130,17 @@ namespace gpu
 
   namespace one::two::three
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
-                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
-                                        int* d_buffer_B)
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
+                                        int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                                        enum mode_cc mode_cc, int minimum_pixel, unsigned char* d_buffer_uc,
+                                        int* d_buffer_A, int* d_buffer_B)
     {
+      cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
+
       // 1.Greyscale
-      auto h_greyscale = cpu::greyscale(h_input, width, height);
+      greyscale(d_buffer_uc, d_buffer_A, width, height);
 
       // Buffer Allocation
-      my_cuda_mem_copy(h_greyscale, d_buffer_A, sizeof(int) * width * height);
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
@@ -150,9 +156,7 @@ namespace gpu
       binary_image(d_buffer_A, width, height, binary_threshold);
 
       // 5.2.Lakes
-      auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
-
-      std::free(h_greyscale);
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, width, height, minimum_pixel);
 
       return components;
     }
@@ -160,16 +164,17 @@ namespace gpu
 
   namespace one::two::three::four
   {
-    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char *h_input, int width, int height,
-                                        int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, enum mode_cc mode_cc, int minimum_pixel, int* d_buffer_A,
-                                        int* d_buffer_B)
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
+                                        int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                                        enum mode_cc mode_cc, int minimum_pixel, unsigned char* d_buffer_uc,
+                                        int* d_buffer_A, int* d_buffer_B)
     {
+      cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
+
       // 1.Greyscale
-      auto h_greyscale = cpu::greyscale(h_input, width, height);
+      greyscale(d_buffer_uc, d_buffer_A, width, height);
 
       // Buffer Allocation
-      my_cuda_mem_copy(h_greyscale, d_buffer_A, sizeof(int) * width * height);
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
@@ -185,11 +190,9 @@ namespace gpu
       binary_image(d_buffer_A, width, height, binary_threshold);
 
       // 5.2.Lakes
-      auto components = get_connected_components(d_buffer_A, d_buffer_B, h_greyscale, width, height, minimum_pixel);
-
-      std::free(h_greyscale);
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, width, height, minimum_pixel);
 
       return components;
     }
-  } // namespace one::two::three
+  } // namespace one::two::three::four
 } // namespace gpu

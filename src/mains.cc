@@ -62,15 +62,18 @@ json main_gpu_2(std::vector<std::string> vargv, unsigned char* ref, int width, i
 
   auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
-  int* d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int* d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  unsigned char* d_buffer_uc =
+      static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
 
   json ret;
   for (size_t img = 0; img < vargv.size(); img++)
   {
-    auto modified   = cv::imread(vargv[img], cv::IMREAD_COLOR);
-    ret[vargv[img]] = pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening,
-                               kernel_size_closing, binary_threshold, mode_cc, minimum_pixel, d_buffer_A, d_buffer_B);
+    auto modified = cv::imread(vargv[img], cv::IMREAD_COLOR);
+    ret[vargv[img]] =
+        pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                 binary_threshold, mode_cc, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B);
   }
 
   gpu::my_cuda_free(d_ref_smoothed);
@@ -94,15 +97,18 @@ json main_gpu_3(std::vector<std::string> vargv, unsigned char* ref, int width, i
 
   auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
-  int* d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int* d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  unsigned char* d_buffer_uc =
+      static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
 
   json ret;
   for (size_t img = 0; img < vargv.size(); img++)
   {
-    auto modified   = cv::imread(vargv[img], cv::IMREAD_COLOR);
-    ret[vargv[img]] = pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening,
-                               kernel_size_closing, binary_threshold, mode_cc, minimum_pixel, d_buffer_A, d_buffer_B);
+    auto modified = cv::imread(vargv[img], cv::IMREAD_COLOR);
+    ret[vargv[img]] =
+        pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                 binary_threshold, mode_cc, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B);
   }
 
   gpu::my_cuda_free(d_ref_smoothed);
@@ -126,15 +132,18 @@ json main_gpu_4(std::vector<std::string> vargv, unsigned char* ref, int width, i
 
   auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
-  int* d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int* d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  unsigned char* d_buffer_uc =
+      static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
 
   json ret;
   for (size_t img = 0; img < vargv.size(); img++)
   {
-    auto modified   = cv::imread(vargv[img], cv::IMREAD_COLOR);
-    ret[vargv[img]] = pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening,
-                               kernel_size_closing, binary_threshold, mode_cc, minimum_pixel, d_buffer_A, d_buffer_B);
+    auto modified = cv::imread(vargv[img], cv::IMREAD_COLOR);
+    ret[vargv[img]] =
+        pipeline(d_ref_smoothed, modified.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                 binary_threshold, mode_cc, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B);
   }
 
   gpu::my_cuda_free(d_ref_smoothed);

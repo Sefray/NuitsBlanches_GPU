@@ -265,8 +265,7 @@ namespace gpu
       *a       = tmp;
     }
 
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
-                                                        int minimum_pixel)
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel)
     {
       init_label(d_A, width, height);
       cudaMemset((void*)d_B, 0, sizeof(int) * width * height);
@@ -353,8 +352,7 @@ namespace gpu
         errx(1, "Computation Error");
     }
 
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* h, int width, int height,
-                                                        int minimum_pixel)
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel)
     {
       init_label(d_A, width, height);
       cudaMemset((void*)d_B, 0, sizeof(int) * width * height);
