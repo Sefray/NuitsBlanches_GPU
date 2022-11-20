@@ -85,8 +85,8 @@ void Detection_nb(benchmark::State& state, std::string const& ref_filename, std:
 
 void BM_Detection_file_nb(benchmark::State& state, enum mode mode, enum mode_cc mode_cc)
 {
-  std::string ref_filename      = std::string("../data/nuit_blanches_81/nb-01.png");
-  std::string modified_filename = std::string("../data/nuit_blanches_81/nb-65.png");
+  std::string ref_filename      = std::string("../data/nuits_blanches_81/nb-01.png");
+  std::string modified_filename = std::string("../data/nuits_blanches_81/nb-65.png");
 
   std::vector<std::string> vargv = {modified_filename};
 
@@ -95,8 +95,8 @@ void BM_Detection_file_nb(benchmark::State& state, enum mode mode, enum mode_cc 
 
 void BM_Detection_folder_nb(benchmark::State& state, enum mode mode, enum mode_cc mode_cc)
 {
-  std::string ref_filename = std::string("../data/nuit_blanches_81/nb-01.png");
-  std::string folder       = std::string("../data/nuit_blanches_81/");
+  std::string ref_filename = std::string("../data/nuits_blanches_81/nb-01.png");
+  std::string folder       = std::string("../data/nuits_blanches_81/");
 
   std::vector<std::string> vargv;
   for (const auto& entry : fs::directory_iterator(folder))
