@@ -29,8 +29,8 @@ if __name__ == "__main__":
     for file in in_dict:
         img = cv2.imread(file)
         for rect in in_dict[file]:
-            cv2.rectangle(img, (rect[0], rect[1]),
-                          (rect[2], rect[3]), (0, 255, 0), 2)
+            x, y, w, h = rect
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
         out.write(img)
 
     out.release()
