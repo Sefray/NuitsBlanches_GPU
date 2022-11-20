@@ -46,7 +46,7 @@ make bench
 The program can be used as follows: \
 
 ```bash
-./main [OPTIONS] -- REFENCE_IMAGE_PATH [IMAGE_PATH]*
+./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
 ```
 
 Note that the dashs are mandatory. \
@@ -93,4 +93,14 @@ Benchmarks are done with Google Benchmark and can be executed with the following
 
 ```bash
 ./bench
+```
+
+---
+
+# Video maker
+
+A video maker is also available to make a video of the detection of objects in the images. \
+
+```bash
+./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH) | python video_maker.py [-o output.avi] [-f FPS]
 ```

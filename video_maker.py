@@ -1,14 +1,18 @@
+import argparse
 import cv2
-import numpy as np
-import glob
+import json
 import sys
 
-import json
 
 if __name__ == "__main__":
-    frameSize = (360, 640)
+    parser = argparse.ArgumentParser(
+        prog='Video Maker',
+        description='Create a video from a list of images readen from stdin')
 
-    out = cv2.VideoWriter('output_video.avi',cv2.VideoWriter_fourcc(*'DIVX'), 10, frameSize)
+    parser.add_argument('-o', '--output_filename',
+                        type=str, default='output_video.avi')
+    parser.add_argument('-f', '--fps', type=int, default=10)
+    args = parser.parse_args()
 
     in_json = ""
     for line in sys.stdin:
@@ -16,16 +20,17 @@ if __name__ == "__main__":
 
     in_dict = json.loads(in_json)
 
+    img_frame_size = cv2.imread(list(in_dict.keys())[0]).shape[:2]
+    frame_size = img_frame_size[1], img_frame_size[0]
+
+    out = cv2.VideoWriter(args.output_filename, cv2.VideoWriter_fourcc(
+        *'DIVX'), args.fps, frame_size)
+
     for file in in_dict:
         img = cv2.imread(file)
         for rect in in_dict[file]:
-            cv2.rectangle(img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 255, 0), 2)
+            cv2.rectangle(img, (rect[0], rect[1]),
+                          (rect[2], rect[3]), (0, 255, 0), 2)
         out.write(img)
-
-    # display in_dict on stdout as a string
-    # print(json.dumps(in_dict))
-
-    # for filename in glob.glob('D:/images/*.jpg'):
-    #     img = cv2.imread(filename)
 
     out.release()
