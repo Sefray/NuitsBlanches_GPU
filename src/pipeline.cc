@@ -21,7 +21,7 @@ namespace cpu
     // 2.Smooth (gaussian filter)
     auto modified_smoothed = smoothing(modified_greyscale, width, height, kernel_size);
 #ifndef NDEBUG
-    save_img(modified_smoothed, width, height, "greyscale_smoothed.png");
+    save_img(modified_smoothed, width, height, "smoothed.png");
 #endif
     // 3.Difference
     auto diff = compute_difference(ref_smoothed, modified_smoothed, width, height);

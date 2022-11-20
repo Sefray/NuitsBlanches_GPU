@@ -64,6 +64,7 @@ namespace cpu
 
 namespace gpu
 {
+  void my_cuda_mem_copy_dth(const int* h, int* d, size_t n);
   int* malloc_and_copy(const int* h, int width, int height);
   void my_cuda_free(int* d);
   int* my_cuda_malloc(size_t n);

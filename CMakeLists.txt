@@ -35,6 +35,7 @@ target_sources(lib PRIVATE
     src/connected_components/connected_components.cu
 
     src/debug/debug.cc
+    src/debug/debug.cu
     src/debug/debug.hh
 
     src/mains.cc

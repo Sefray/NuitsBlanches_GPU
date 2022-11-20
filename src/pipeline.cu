@@ -10,13 +10,6 @@
 
 namespace gpu
 {
-  void my_cuda_mem_copy(const int* h, int* d, size_t n)
-  {
-    int rc = cudaMemcpy(d, h, n, cudaMemcpyHostToDevice);
-    if (rc)
-      errx(1, "Fail buffer copy to device");
-  }
-
   void my_cuda_mem_set(int* d, int v, size_t n)
   {
     int rc = cudaMemset((void*)d, 0, n);
@@ -26,8 +19,10 @@ namespace gpu
 
   int* malloc_and_copy(const int* h, int width, int height)
   {
-    int* d = my_cuda_malloc(sizeof(int) * width * height);
-    my_cuda_mem_copy(h, d, sizeof(int) * width * height);
+    int* d  = my_cuda_malloc(sizeof(int) * width * height);
+    int  rc = cudaMemcpy(d, h, sizeof(int) * width * height, cudaMemcpyHostToDevice);
+    if (rc)
+      errx(1, "Fail buffer copy to device");
     return d;
   }
 
@@ -72,18 +67,31 @@ namespace gpu
 
       // 1.Greyscale
       auto d_greyscale = greyscale(d_input, width, height);
+#ifndef NDEBUG
+      save_img_gpu(d_greyscale, width, height, "greyscaled_gpu.png");
+#endif
 
       // 2.Smooth (gaussian filter)
       auto d_smoothed = smoothing(d_greyscale, width, height, kernel_size);
-
+#ifndef NDEBUG
+      save_img_gpu(d_smoothed, width, height, "smoothed_gpu.png");
+#endif
       // 3.Difference
       auto d_diff = compute_difference(d_ref_in, d_smoothed, width, height);
-
+#ifndef NDEBUG
+      save_img_gpu(d_diff, width, height, "diff_gpu.png");
+#endif
       // 4.Closing/opening with disk or rectangle
       auto d_closed_opened = closing_opening(d_diff, width, height, kernel_size_opening, kernel_size_closing);
+#ifndef NDEBUG
+      save_img_gpu(d_closed_opened, width, height, "closed_opened_gpu.png");
+#endif
 
       // 5.1.Thresh image
       binary_image(d_closed_opened, width, height, binary_threshold);
+#ifndef NDEBUG
+      save_img_gpu(d_closed_opened, width, height, "binary_gpu.png", 255);
+#endif
 
       // 5.2.Lakes
       auto components = get_connected_components(d_closed_opened, width, height, minimum_pixel);
