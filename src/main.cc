@@ -9,22 +9,47 @@
 
 using json = nlohmann::json;
 
+std::vector<std::string> get_files(int argc, char* argv[], bool is_path)
+{
+  std::vector<std::string> files;
+  if (is_path)
+  {
+    if (!std::filesystem::is_directory(argv[1]))
+    {
+      std::cerr << "Error: " << argv[1] << " is not a directory" << std::endl;
+      exit(1);
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(argv[1]))
+      files.push_back(entry.path());
+  }
+  else
+  {
+    for (int i = 1; i < argc; ++i)
+      files.push_back(argv[i]);
+  }
+
+  return files;
+}
+
 int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(argc, argv,
-                               "{mode                   |0|0:CPU 1:GPU}"
+                               "{mode                  |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4}"
 
-                               "{kernel_size |5|Should be odd}"
+                               "{kernel_size           |5|Should be odd}"
 
-                               "{kernel_size_opening       |101|Should be odd}"
-                               "{kernel_size_closing       |41|Should be odd}"
+                               "{kernel_size_opening   |101|Should be odd}"
+                               "{kernel_size_closing   |41|Should be odd}"
 
-                               "{binary_threshold        |12|}"
+                               "{binary_threshold      |12|}"
 
-                               "{minimum_pixel      |30| Angle in degree}"
-                               "{mode_cc            |0|0:slide 1:union_find}"
+                               "{minimum_pixel         |30|Angle in degree}"
+                               "{mode_cc               |0|0:slide 1:union_find (CPU only)}"
 
-                               "{help    h|false|show help message}");
+                               "{folder                |false|Is the path a folder}"
+
+                               "{help                 h|false|show help message}");
 
   int i = 1;
   while (argv[i] && strcmp(argv[i++], "--"))
@@ -39,9 +64,7 @@ int main(int argc, char* argv[])
   argv += i;
   argc -= i;
 
-  std::vector<std::string> vargv;
-  for (int i = 1; i < argc; i++)
-    vargv.push_back(std::string(argv[i]));
+  std::vector<std::string> vargv = get_files(argc, argv, parser.get<bool>("folder"));
 
   int mode = parser.get<int>("mode");
 
