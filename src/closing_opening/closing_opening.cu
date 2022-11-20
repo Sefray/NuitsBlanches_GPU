@@ -94,14 +94,14 @@ namespace gpu
     {
       // Closing
       auto mask = create_mask(kernel_size_closing);
-      auto d_a  = kernel_func(d_in, width, height, mask, kernel_size_closing, EROSION);
-      auto d_b  = kernel_func(d_a, width, height, mask, kernel_size_closing, DILATATION);
+      auto d_a  = kernel_func(d_in, width, height, mask, kernel_size_closing, DILATATION);
+      auto d_b  = kernel_func(d_a, width, height, mask, kernel_size_closing, EROSION);
       cudaFree(mask);
 
       // Opening
       mask       = create_mask(kernel_size_opening);
-      auto d_c   = kernel_func(d_b, width, height, mask, kernel_size_opening, DILATATION);
-      auto d_out = kernel_func(d_c, width, height, mask, kernel_size_opening, EROSION);
+      auto d_c   = kernel_func(d_b, width, height, mask, kernel_size_opening, EROSION);
+      auto d_out = kernel_func(d_c, width, height, mask, kernel_size_opening, DILATATION);
       cudaFree(mask);
 
       return d_out;
@@ -128,14 +128,14 @@ namespace gpu
     {
       // Closing
       auto mask = create_mask(kernel_size_closing);
-      kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
-      kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, DILATATION);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, DILATATION);
+      kernel_func(d_B, d_A, width, height, mask, kernel_size_closing, EROSION);
       cudaFree(mask);
 
       // Opening
       mask = create_mask(kernel_size_opening);
-      kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
-      kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, EROSION);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, EROSION);
+      kernel_func(d_B, d_A, width, height, mask, kernel_size_opening, DILATATION);
       cudaFree(mask);
     }
   } // namespace one::two
@@ -199,14 +199,14 @@ namespace gpu
     {
       // Closing
       auto mask = create_mask(kernel_size_closing);
-      kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
       kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, DILATATION);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_closing, EROSION);
       cudaFree(mask);
 
       // Opening
       mask = create_mask(kernel_size_opening);
-      kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
       kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, EROSION);
+      kernel_func(d_A, d_B, width, height, mask, kernel_size_opening, DILATATION);
       cudaFree(mask);
     }
   } // namespace one::two::three

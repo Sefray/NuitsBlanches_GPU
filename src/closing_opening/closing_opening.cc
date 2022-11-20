@@ -16,7 +16,7 @@ namespace cpu
           ret[y * kernel_size + x] = 1;
       break;
     case disk:
-      int   ks2  = kernel_size / 2;
+      int ks2  = kernel_size / 2;
       int ks2s = ks2 * ks2;
       for (int x = 0; x < kernel_size; x++)
         for (int y = 0; y < kernel_size; y++)
@@ -91,14 +91,24 @@ namespace cpu
 
     // Closing
     auto mask = create_mask(kernel_size_closing);
-    auto a    = erosion(img, width, height, mask, kernel_size_closing);
-    auto b    = dilatation(a, width, height, mask, kernel_size_closing);
+    auto a    = dilatation(img, width, height, mask, kernel_size_closing);
+#ifndef NDEBUG
+    save_img(a, width, height, "closing_dillation.png");
+#endif
+    auto b    = erosion(a, width, height, mask, kernel_size_closing);
     std::free(mask);
+
+#ifndef NDEBUG
+    save_img(b, width, height, "closing_erosion.png");
+#endif
 
     // Opening
     mask     = create_mask(kernel_size_opening);
-    auto c   = dilatation(b, width, height, mask, kernel_size_opening);
-    auto ret = erosion(c, width, height, mask, kernel_size_opening);
+    auto c   = erosion(b, width, height, mask, kernel_size_opening);
+#ifndef NDEBUG
+    save_img(c, width, height, "opening_erosion.png");
+#endif
+    auto ret = dilatation(c, width, height, mask, kernel_size_opening);
     std::free(mask);
 
     return ret;
