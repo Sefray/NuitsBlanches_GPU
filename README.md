@@ -17,6 +17,12 @@ The pipeline computes the following steps: \
 - binarize the output of the previous step
 - compute the connected components and their bouding box of the binarized image
 
+<p float="left">
+    <img src="data/nb.gif" width="370" height="216" />
+    <img src="data/sp.gif" width="260" height="216" />
+    <img src="data/aled.gif" width="370" height="216" />
+</p>
+
 ---
 
 ## Build
