@@ -211,9 +211,9 @@ TEST(Closing_Opening, opening5_closing3)
   std::free(out);
 }
 
-TEST(Closing_Opening, opening5_closing3_hard)
+TEST(Closing_Opening, opening3_closing3_hard)
 {
-  int kernel_size_opening = 5;
+  int kernel_size_opening = 3;
   int kernel_size_closing = 3;
 
   int img_width  = 20;
