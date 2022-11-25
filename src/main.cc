@@ -35,16 +35,13 @@ std::vector<std::string> get_files(int argc, char* argv[], bool is_path)
 int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(argc, argv,
-                               "{mode                  |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4}"
+                               "{mode                  |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 5:GPU5}"
 
-                               "{kernel_size           |5|Should be odd}"
-
+                               "{kernel_size           |5|Size of the kernel for the gaussian blur}"
                                "{kernel_size_opening   |101|Should be odd}"
                                "{kernel_size_closing   |41|Should be odd}"
-
-                               "{binary_threshold      |12|}"
-
-                               "{minimum_pixel         |30|Angle in degree}"
+                               "{binary_threshold      |12|Minimum value for a pixel to be considered as a binary pixel}"
+                               "{minimum_pixel         |30|Minimum number of pixel for a blob}"
 
                                "{folder                |false|Is the path a folder}"
 
