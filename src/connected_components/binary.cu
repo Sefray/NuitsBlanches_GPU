@@ -1,6 +1,6 @@
 #include "pipeline.cuh"
 
-namespace gpu
+namespace gpu::one
 {
   __global__ void gpu_binary_image(int* d_in_out, int width, int height, int threshold)
   {

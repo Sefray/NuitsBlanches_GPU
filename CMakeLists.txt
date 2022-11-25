@@ -80,3 +80,7 @@ target_link_libraries(test GTest::gtest_main lib PNG::PNG)
 add_executable(bench bench/bench.cc)
 target_compile_features(bench PUBLIC cxx_std_20)
 target_link_libraries(bench PRIVATE lib benchmark::benchmark ${OpenCV_LIBS} PNG::PNG)
+
+add_executable(bench_unit bench/bench_unit.cc)
+target_compile_features(bench_unit PUBLIC cxx_std_20)
+target_link_libraries(bench_unit PRIVATE lib benchmark::benchmark ${OpenCV_LIBS})

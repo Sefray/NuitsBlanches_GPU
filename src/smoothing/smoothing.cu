@@ -4,7 +4,7 @@
 
 namespace gpu
 {
-  float* init_gaussian_kernel(int kernel_size, float sigma = 1.0f)
+  float* init_gaussian_kernel(int kernel_size, float sigma)
   {
     float* h_ret = cpu::init_gaussian_kernel(kernel_size, sigma);
 
@@ -98,11 +98,8 @@ namespace gpu
       d_out[x + y * width] = static_cast<int>(v);
     }
 
-    void smoothing(int* d_in, int* d_out, int width, int height, int kernel_size)
+    void smoothing(int* d_in, int* d_out, int width, int height, float *kernel, int kernel_size)
     {
-      assert(kernel_size % 2 == 1);
-
-      float* kernel = init_gaussian_kernel(kernel_size);
       int    ks2    = kernel_size / 2;
 
       int bsize = 256;
@@ -115,8 +112,6 @@ namespace gpu
 
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
-
-      cudaFree(kernel);
     }
   } // namespace one::two
 } // namespace gpu

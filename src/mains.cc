@@ -59,6 +59,8 @@ json main_gpu_buffer(std::vector<std::tuple<std::string, unsigned char*>> images
   auto d_ref_greyscale = gpu::malloc_and_copy(h_ref_greyscale, width, height);
   std::free(h_ref_greyscale);
 
+  auto d_kernel_smooth = gpu::init_gaussian_kernel(kernel_size);
+
   auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
   int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
@@ -71,11 +73,11 @@ json main_gpu_buffer(std::vector<std::tuple<std::string, unsigned char*>> images
   {
     auto [name, image] = images[image_index];
     ret[name]          = p(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                           binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B);
+                           binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, d_kernel_smooth);
   }
 
+  cudaFree(d_kernel_smooth);
   gpu::my_cuda_free(d_ref_smoothed);
-
   gpu::my_cuda_free(d_buffer_A);
   gpu::my_cuda_free(d_buffer_B);
 
@@ -131,8 +133,9 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
 
   auto d_ref_smoothed = gpu::one::smoothing(d_ref_greyscale, width, height, kernel_size);
 
-  int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  float*         d_kernel_smooth = gpu::init_gaussian_kernel(kernel_size);
+  int*           d_buffer_A      = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_B      = gpu::my_cuda_malloc(sizeof(int) * width * height);
   unsigned char* d_buffer_uc =
       static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
 
@@ -149,12 +152,13 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   for (size_t image_index = 0; image_index < images.size(); image_index++)
   {
     auto [name, image] = images[image_index];
-    ret[name] = pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, streams);
+    ret[name] =
+        pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                 binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, d_kernel_smooth, streams);
   }
 
+  cudaFree(d_kernel_smooth);
   gpu::my_cuda_free(d_ref_smoothed);
-
   gpu::my_cuda_free(d_buffer_A);
   gpu::my_cuda_free(d_buffer_B);
 

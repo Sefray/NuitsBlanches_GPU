@@ -106,7 +106,8 @@ namespace gpu
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
                                         int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B)
+                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        float* d_kernel_smooth)
     {
       cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
 
@@ -117,7 +118,7 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
 
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
@@ -139,7 +140,8 @@ namespace gpu
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
                                         int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B)
+                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        float* d_kernel_smooth)
     {
       cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
 
@@ -150,7 +152,7 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
 
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
@@ -172,7 +174,8 @@ namespace gpu
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
                                         int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B)
+                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        float* d_kernel_smooth)
     {
       cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
 
@@ -183,7 +186,7 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
 
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
@@ -204,7 +207,8 @@ namespace gpu
   {
     std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
                                         int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B)
+                                        int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        float* d_kernel_smooth)
     {
       cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
 
@@ -215,7 +219,7 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
 
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
@@ -238,7 +242,7 @@ namespace gpu
     std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
                                         int kernel_size_opening, int kernel_size_closing, int binary_threshold,
                                         int minimum_pixel, unsigned char* d_buffer_uc, int* d_buffer_A, int* d_buffer_B,
-                                        std::vector<cudaStream_t>& streams)
+                                        float* d_kernel_smooth, std::vector<cudaStream_t>& streams)
     {
       cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
 
@@ -249,7 +253,7 @@ namespace gpu
       my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
 
       // 2.Smooth (gaussian filter)
-      smoothing(d_buffer_A, d_buffer_B, width, height, kernel_size);
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
 
       // 3.Difference
       compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
