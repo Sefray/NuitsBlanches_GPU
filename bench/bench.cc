@@ -56,10 +56,10 @@ void Detection_sp(benchmark::State& state, std::string const& ref_filename, std:
                   enum mode mode)
 {
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
-  int binary_threshold    = 50;
-  int minimum_pixel       = 30;
+  int kernel_size_opening = 21;
+  int kernel_size_closing = 15;
+  int binary_threshold    = 40;
+  int minimum_pixel       = 360 * 640 * 5.0 / 100;
 
   bench_func(state, ref_filename, vargv, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, mode,
              minimum_pixel);
@@ -92,10 +92,10 @@ void Detection_nb(benchmark::State& state, std::string const& ref_filename, std:
                   enum mode mode)
 {
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
+  int kernel_size_opening = 41;
+  int kernel_size_closing = 21;
   int binary_threshold    = 20;
-  int minimum_pixel       = 30;
+  int minimum_pixel       = 1920 * 1080 * 0.5f / 100;
 
   bench_func(state, ref_filename, vargv, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold, mode,
              minimum_pixel);
@@ -134,27 +134,33 @@ void BM_Detection_folder_nb(benchmark::State& state, enum mode mode)
 
 // BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_one, GPU_1)->Unit(benchmark::kMillisecond)->UseRealTime();
 // BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_two, GPU_2)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_three, GPU_3)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_four, GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_five, GPU_5)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_six, GPU_6)->Unit(benchmark::kMillisecond)->UseRealTime();
+// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_three,
+// GPU_3)->Unit(benchmark::kMillisecond)->UseRealTime(); BENCHMARK_CAPTURE(BM_Detection_folder_sp,
+// scia_premium_gpu_four, GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
+// BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_five,
+// GPU_5)->Unit(benchmark::kMillisecond)->UseRealTime(); BENCHMARK_CAPTURE(BM_Detection_folder_sp, scia_premium_gpu_six,
+// GPU_6)->Unit(benchmark::kMillisecond)->UseRealTime();
 
 // Nuit Blanches(multiple objects + framesize = (1080, 1920))
 BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_cpu, CPU)->Unit(benchmark::kMillisecond)->UseRealTime();
 BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_one, GPU_1)->Unit(benchmark::kMillisecond)->UseRealTime();
 // BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_two, GPU_2)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_three, GPU_3)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_four, GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
+// BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_three,
+// GPU_3)->Unit(benchmark::kMillisecond)->UseRealTime(); BENCHMARK_CAPTURE(BM_Detection_file_nb,
+// nuits_blanches_gpu_four, GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
 BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_five, GPU_5)->Unit(benchmark::kMillisecond)->UseRealTime();
 // BENCHMARK_CAPTURE(BM_Detection_file_nb, nuits_blanches_gpu_six, GPU_6)->Unit(benchmark::kMillisecond)->UseRealTime();
 
 BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_one, GPU_1)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_two, GPU_2)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_three, GPU_3)
+// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_two,
+// GPU_2)->Unit(benchmark::kMillisecond)->UseRealTime(); BENCHMARK_CAPTURE(BM_Detection_folder_nb,
+// nuits_blanches_gpu_three, GPU_3)
 //     ->Unit(benchmark::kMillisecond)
 //     ->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_four, GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
+// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_four,
+// GPU_4)->Unit(benchmark::kMillisecond)->UseRealTime();
 BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_five, GPU_5)->Unit(benchmark::kMillisecond)->UseRealTime();
-// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_six, GPU_6)->Unit(benchmark::kMillisecond)->UseRealTime();
+// BENCHMARK_CAPTURE(BM_Detection_folder_nb, nuits_blanches_gpu_six,
+// GPU_6)->Unit(benchmark::kMillisecond)->UseRealTime();
 
 BENCHMARK_MAIN();

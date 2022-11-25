@@ -97,10 +97,10 @@ void BM_Diff(benchmark::State& state)
   using namespace gpu::one::two;
 
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
-  int binary_threshold    = 20;
-  int minimum_pixel       = 30;
+  int kernel_size_opening = 41;
+  int kernel_size_closing = 31;
+  int binary_threshold    = 15;
+  int minimum_pixel       = 1920 * 1080 * 0.5f / 100;
 
   int* d_ref_in = get_ref_image(kernel_size);
 
@@ -142,10 +142,10 @@ void BM_Closing_Opening(benchmark::State& state)
   using namespace gpu::one::two;
 
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
-  int binary_threshold    = 20;
-  int minimum_pixel       = 30;
+  int kernel_size_opening = 41;
+  int kernel_size_closing = 31;
+  int binary_threshold    = 15;
+  int minimum_pixel       = 1920 * 1080 * 0.5f / 100;
 
   int* d_ref_in = get_ref_image(kernel_size);
 
@@ -189,10 +189,10 @@ void BM_Threshold(benchmark::State& state)
   using namespace gpu::one::two;
 
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
-  int binary_threshold    = 20;
-  int minimum_pixel       = 30;
+  int kernel_size_opening = 41;
+  int kernel_size_closing = 31;
+  int binary_threshold    = 15;
+  int minimum_pixel       = 1920 * 1080 * 0.5f / 100;
 
   int* d_ref_in = get_ref_image(kernel_size);
 
@@ -238,10 +238,10 @@ void BM_Connectic_components(benchmark::State& state)
   using namespace gpu::one::two;
 
   int kernel_size         = 5;
-  int kernel_size_opening = 51;
-  int kernel_size_closing = 41;
-  int binary_threshold    = 20;
-  int minimum_pixel       = 30;
+  int kernel_size_opening = 41;
+  int kernel_size_closing = 31;
+  int binary_threshold    = 15;
+  int minimum_pixel       = 1920 * 1080 * 0.5f / 100;
 
   int* d_ref_in = get_ref_image(kernel_size);
 

@@ -52,7 +52,7 @@ make bench
 The program can be used as follows: \
 
 ```bash
-./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
+Usage: ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
 ```
 
 Note that the dashs are mandatory. \
@@ -79,12 +79,31 @@ To know possible parameters of the program, you can use the following command: \
 
 ```bash
 ./main --help
+Usage: ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
+
+        --binary_threshold (value:12)
+                Minimum value for a pixel to be considered as a binary pixel
+        --folder (value:false)
+                Is the path a folder
+        -h, --help (value:false)
+                show help message
+        --kernel_size (value:5)
+                Size of the kernel for the gaussian blur
+        --kernel_size_closing (value:41)
+                Should be odd
+        --kernel_size_opening (value:101)
+                Should be odd
+        --minimum_pixel_percentage (value:1.0)
+                Percentage of the space occupied by the object to be considered as a detection
+        --mode (value:0)
+                0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 6:GPU6
 ```
 
 ---
 
 ## Test
 
+Test are only performed on the CPU version of the program. \
 Tests are done with Google Test and can be executed with the following command: \
 
 ```bash
@@ -95,11 +114,48 @@ Tests are done with Google Test and can be executed with the following command: 
 
 ## Bench
 
-Benchmarks are done with Google Benchmark and can be executed with the following command: \
+Benchmarks are done with Google Benchmark.
+
+### Unit
+
+The unit benchmark displays performances of the element of the pipeline (on *Nuits Blanches* image). \
+Unit benchmark can be performed as follow: \
 
 ```bash
-./bench
+42sh$ ./bench_unit
+----------------------------------------------------------------------------
+Benchmark                                  Time             CPU   Iterations
+----------------------------------------------------------------------------
+BM_Greyscale/real_time                 0.400 ms        0.400 ms        10000
+BM_Blur/real_time                       1.57 ms         1.57 ms        10000
+BM_Diff/real_time                      0.238 ms        0.238 ms        10000
+BM_Closing_Opening/real_time            18.0 ms         18.0 ms           38
+BM_Threshold/real_time                 0.171 ms        0.171 ms        10000
+BM_Connectic_components/real_time       21.4 ms         21.4 ms           33
 ```
+
+Only the computating time is concidered. \
+
+## Full
+
+The full benchmark displays performances of the complete for multiple version. \
+Full benchmark can be performed as follow: \
+
+```bash
+42sh$ ./bench
+-------------------------------------------------------------------------------------------------------------------
+Benchmark                                                         Time             CPU   Iterations UserCounters...
+-------------------------------------------------------------------------------------------------------------------
+BM_Detection_file_nb/nuits_blanches_cpu/real_time              8786 ms         8785 ms            1 items_per_second=0.113823/s
+BM_Detection_file_nb/nuits_blanches_gpu_one/real_time          1663 ms          666 ms            1 items_per_second=0.601193/s
+[...]
+BM_Detection_file_nb/nuits_blanches_gpu_five/real_time          116 ms          111 ms            6 items_per_second=8.65792/s
+BM_Detection_folder_nb/nuits_blanches_gpu_one/real_time       31876 ms        31370 ms            1 items_per_second=2.5411/s
+[...]
+BM_Detection_folder_nb/nuits_blanches_gpu_five/real_time       3725 ms         3721 ms            1 items_per_second=21.7461/s
+```
+
+The data loading is not considered. \
 
 ---
 
@@ -109,4 +165,26 @@ A video maker is also available to make a video of the detection of objects in t
 
 ```bash
 ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH) | python video_maker.py [-o output.avi] [-f FPS]
+```
+
+--- 
+
+## Parameters used for gifs
+
+### Nuits Blanches
+
+```bash
+--binary_threshold=20 --kernel_size_opening=41 --kernel_size_closing=21 --minimum_pixel_percentage=0.5
+```
+
+### Scia Premium
+
+```bash
+--binary_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=5
+```
+
+### Aled
+
+```bash
+--binary_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=1
 ```

@@ -34,18 +34,21 @@ std::vector<std::string> get_files(int argc, char* argv[], bool is_path)
 
 int main(int argc, char* argv[])
 {
-  cv::CommandLineParser parser(argc, argv,
-                               "{mode                  |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 5:GPU5}"
+  cv::CommandLineParser parser(
+      argc, argv,
+      "{mode                     |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 6:GPU6}"
 
-                               "{kernel_size           |5|Size of the kernel for the gaussian blur}"
-                               "{kernel_size_opening   |101|Should be odd}"
-                               "{kernel_size_closing   |41|Should be odd}"
-                               "{binary_threshold      |12|Minimum value for a pixel to be considered as a binary pixel}"
-                               "{minimum_pixel         |30|Minimum number of pixel for a blob}"
+      "{kernel_size              |5|Size of the kernel for the gaussian blur}"
+      "{kernel_size_opening      |101|Should be odd}"
+      "{kernel_size_closing      |41|Should be odd}"
+      "{binary_threshold         |12|Minimum value for a pixel to be considered as a binary pixel}"
+      "{minimum_pixel_percentage |1.0|Percentage of the space occupied by the object to be considered as a detection}"
 
-                               "{folder                |false|Is the path a folder}"
+      "{folder                   |false|Is the path a folder}"
 
-                               "{help                 h|false|show help message}");
+      "{help                 h|false|show help message}");
+
+  parser.about("Usage: ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)");
 
   int i = 1;
   while (argv[i] && strcmp(argv[i++], "--"))
@@ -64,16 +67,18 @@ int main(int argc, char* argv[])
 
   int mode = parser.get<int>("mode");
 
-  int kernel_size         = parser.get<int>("kernel_size");
-  int kernel_size_opening = parser.get<int>("kernel_size_opening");
-  int kernel_size_closing = parser.get<int>("kernel_size_closing");
-  int binary_threshold    = parser.get<int>("binary_threshold");
-  int minimum_pixel       = parser.get<int>("minimum_pixel");
+  int   kernel_size              = parser.get<int>("kernel_size");
+  int   kernel_size_opening      = parser.get<int>("kernel_size_opening");
+  int   kernel_size_closing      = parser.get<int>("kernel_size_closing");
+  int   binary_threshold         = parser.get<int>("binary_threshold");
+  float minimum_pixel_percentage = parser.get<float>("minimum_pixel_percentage");
 
   auto ref = cv::imread(*argv, cv::IMREAD_COLOR);
 
   int width  = ref.cols;
   int height = ref.rows;
+
+  int minimum_pixel = width * height * minimum_pixel_percentage / 100;
 
   std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu,   main_gpu_1, main_gpu_2, main_gpu_3,
                                                               main_gpu_4, main_gpu_5, main_gpu_6};
