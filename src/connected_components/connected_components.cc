@@ -4,33 +4,6 @@
 
 namespace cpu
 {
-  void compute_union(int* image, int width, int height)
-  {
-    for (int y = 0; y < height; y++)
-      for (int x = 0; x < width; x++)
-        if (image[x + y * width] == 1)
-        {
-          int nl = y - 1 >= 0 ? std::abs(image[x + (y - 1) * width]) : 0;
-          int ol = x - 1 >= 0 ? std::abs(image[x - 1 + y * width]) : 0;
-
-          int cl;
-          if (nl && ol)
-            cl = std::min(ol, nl);
-          else if (nl || ol)
-            cl = std::max(ol, nl);
-          else
-            cl = -(x + y * width + 2);
-
-          image[x + y * width] = cl;
-
-          // Union
-          if (y - 1 >= 0 && nl && nl != std::abs(cl))
-            image[nl - 2] = std::abs(cl);
-          if (x - 1 >= 0 && ol && ol != std::abs(cl))
-            image[ol - 2] = std::abs(cl);
-        }
-  }
-
   int relabel(int* image, int width, int height)
   {
     int r = 0;
@@ -94,14 +67,6 @@ namespace cpu
     return ret;
   }
 
-  std::set<std::vector<int>> get_connected_components_uf(int* image, int width, int height, int minimum_pixel)
-  {
-    compute_union(image, width, height);
-    int  nb_label = relabel(image, width, height);
-    auto ret      = compute_find(image, width, height, minimum_pixel, nb_label);
-    return ret;
-  }
-
   void init_label(int* image, int width, int height)
   {
     for (int y = 0; y < height; y++)
@@ -137,10 +102,6 @@ namespace cpu
   {
     bool changed = false;
 
-    // for (int y = 0; y < height; y++)
-    //   for (int x = 0; x < width; x++)
-    //   {
-
     for (int p = 0; p < width * height;)
     {
       for (int s = 0; s < 8; s++)
@@ -168,7 +129,6 @@ namespace cpu
           if (!(y %= height))
             break;
         }
-
       }
     }
 
@@ -190,12 +150,18 @@ namespace cpu
     return ret;
   }
 
-  std::set<std::vector<int>> get_connected_components(int* image, int width, int height, enum mode_cc mode,
-                                                      int minimum_pixel)
+  std::set<std::vector<int>> get_connected_components(int* image, int width, int height, int minimum_pixel)
   {
-    if (mode == slide)
-      return get_connected_components_l(image, width, height, minimum_pixel);
-    else // if (mode == union_find)
-      return get_connected_components_uf(image, width, height, minimum_pixel);
+    init_label(image, width, height);
+
+    bool changed = true;
+    while (changed)
+      changed = propaged_label(image, width, height);
+
+    int nb_label = relabel(image, width, height);
+
+    auto ret = compute_find(image, width, height, minimum_pixel, nb_label);
+
+    return ret;
   }
 } // namespace cpu

@@ -1,4 +1,4 @@
-#include "pipeline.hh"
+#include "pipeline.cuh"
 
 namespace gpu
 {

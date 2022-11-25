@@ -45,7 +45,6 @@ int main(int argc, char* argv[])
                                "{binary_threshold      |12|}"
 
                                "{minimum_pixel         |30|Angle in degree}"
-                               "{mode_cc               |0|0:slide 1:union_find (CPU only)}"
 
                                "{folder                |false|Is the path a folder}"
 
@@ -68,24 +67,36 @@ int main(int argc, char* argv[])
 
   int mode = parser.get<int>("mode");
 
-  int          kernel_size         = parser.get<int>("kernel_size");
-  int          kernel_size_opening = parser.get<int>("kernel_size_opening");
-  int          kernel_size_closing = parser.get<int>("kernel_size_closing");
-  int          binary_threshold    = parser.get<int>("binary_threshold");
-  enum mode_cc mode_cc             = static_cast<enum mode_cc>(parser.get<int>("mode_cc"));
-  int          minimum_pixel       = parser.get<int>("minimum_pixel");
+  int kernel_size         = parser.get<int>("kernel_size");
+  int kernel_size_opening = parser.get<int>("kernel_size_opening");
+  int kernel_size_closing = parser.get<int>("kernel_size_closing");
+  int binary_threshold    = parser.get<int>("binary_threshold");
+  int minimum_pixel       = parser.get<int>("minimum_pixel");
 
   auto ref = cv::imread(*argv, cv::IMREAD_COLOR);
-
-  // png::image<png::rgb_pixel> ref(*argv);
 
   int width  = ref.cols;
   int height = ref.rows;
 
-  std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu, main_gpu_1, main_gpu_2, main_gpu_3, main_gpu_4};
+  std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu,   main_gpu_1, main_gpu_2, main_gpu_3,
+                                                              main_gpu_4, main_gpu_5, main_gpu_6};
 
-  json ret = main_func[mode](vargv, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                             binary_threshold, mode_cc, minimum_pixel);
+  std::vector<std::tuple<std::string, unsigned char*>> images;
+  for (auto& file : vargv)
+  {
+    auto           img  = cv::imread(file, cv::IMREAD_COLOR);
+    unsigned char* data = new unsigned char[width * height * 3];
+    memcpy(data, img.data, width * height * 3);
+    images.emplace_back(file, data);
+  }
+
+  json ret = main_func[mode](images, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                             binary_threshold, minimum_pixel);
+
+  for (auto& img : images)
+  {
+    delete[] std::get<1>(img);
+  }
 
   std::cout << ret.dump(2) << std::endl;
 }

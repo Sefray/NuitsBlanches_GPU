@@ -5,7 +5,8 @@ set(CMAKE_CUDA_ARCHITECTURES "61")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -W -Wall -Wextra -pedantic -fsanitize=address -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -W -Wall -Wextra -pedantic -O3")
-set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -W")
+set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -W -O3")
+set(CMAKE_CUDA_STANDARD "14")
 
 find_package(PNG REQUIRED)
 find_package(nlohmann_json 3.10.5 REQUIRED)
@@ -18,6 +19,7 @@ target_compile_features(lib PUBLIC cxx_std_20)
 
 target_sources(lib PRIVATE    
     src/pipeline.hh
+    src/pipeline.cuh
     src/pipeline.cc
     src/pipeline.cu
 

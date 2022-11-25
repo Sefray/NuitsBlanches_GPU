@@ -1,4 +1,4 @@
-#include "pipeline.hh"
+#include "pipeline.cuh"
 
 #include <map>
 
@@ -154,12 +154,8 @@ namespace gpu
     return ret;
   }
 
-  __device__ int get_min_neighbor(int* d_in_out, int p, int x, int y, int width, int height)
+  __device__ int get_min_neighbor(int* d_in_out, int p, int min, int x, int y, int width, int height, int shift)
   {
-    int min = d_in_out[p];
-    if (min < 0)
-      min *= -1;
-
     for (int j = -1; j < 2; j++)
     {
       int cy = y + j;
@@ -172,7 +168,7 @@ namespace gpu
         if (!(0 <= cx && cx < width))
           continue;
 
-        int pos  = cx + cy * width;
+        int pos  = p + i + j * shift;
         int cpos = d_in_out[pos];
         if (cpos < 0)
           cpos *= -1;
@@ -194,10 +190,10 @@ namespace gpu
     if (x >= width || y >= height || d_in[p] == 0)
       return;
 
-    int min  = get_min_neighbor(d_in, p, x, y, width, height);
     int cmin = d_in[p];
     if (cmin < 0)
       cmin *= -1;
+    int min = get_min_neighbor(d_in, p, cmin, x, y, width, height, width);
 
     if (min < cmin)
     {
@@ -310,20 +306,23 @@ namespace gpu
       int x = p % width;
       int y = p / width;
 
-      if (x >= width || y >= height || d_in[p] == 0 || !(p % 32))
+      if (x >= width || y >= height || !(p % 32))
         return;
 
       for (int s = 0; s < 32 && s + p < width * height; s++)
       {
-        int min  = get_min_neighbor(d_in, p, x, y, width, height);
         int cmin = d_in[p];
-        if (cmin < 0)
-          cmin *= -1;
-
-        if (min < cmin)
+        if (cmin != 0)
         {
-          *changed = true;
-          d_out[p] = min;
+          if (cmin < 0)
+            cmin *= -1;
+          int min = get_min_neighbor(d_in, p, cmin, x, y, width, height, width);
+
+          if (min < cmin)
+          {
+            *changed = true;
+            d_out[p] = min;
+          }
         }
 
         // Update (x, y) and p
@@ -380,6 +379,7 @@ namespace gpu
         if (rc)
           errx(1, "Fail buffer copy to host");
       }
+      cudaFree(d_changed);
 
       int r = relabel(d_A, width, height);
 

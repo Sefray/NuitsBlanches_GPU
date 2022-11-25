@@ -83,28 +83,13 @@ TEST(Smoothing, smoothing_ones)
   std::free(out);
 }
 
-TEST(Create_mask, square)
+TEST(Create_mask, create_mask)
 {
   int size_mask = 3;
 
   int ref[] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  auto out = create_mask(size_mask, square);
-
-  check_img(ref, out, size_mask, size_mask);
-
-  std::free(out);
-}
-
-TEST(Create_mask, disk)
-{
-  int size_mask = 3;
-
-  int ref[] = {0, 1, 0,
-              1, 1, 1,
-              0, 1, 0};
-
-  auto out = create_mask(size_mask, disk);
+  auto out = create_mask(size_mask);
 
   check_img(ref, out, size_mask, size_mask);
 
@@ -274,16 +259,15 @@ void check_connected_components(std::set<std::vector<int>>& ref, std::set<std::v
 
   ASSERT_EQ(out.size(), 0);
 }
-TEST(Connectic_component, slide_small_one_no_bounderies)
+TEST(Connectic_component, small_one_no_bounderies)
 {
   int width  = 5;
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
 
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = slide;
+  int minimum_pixel = 0;
 
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
@@ -292,16 +276,15 @@ TEST(Connectic_component, slide_small_one_no_bounderies)
   check_connected_components(ref, out);
 }
 
-TEST(Connectic_component, slide_small_one_no_bounderies_holl)
+TEST(Connectic_component, small_one_no_bounderies_holl)
 {
   int width  = 5;
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
 
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = slide;
+  int minimum_pixel = 0;
 
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
@@ -310,16 +293,15 @@ TEST(Connectic_component, slide_small_one_no_bounderies_holl)
   check_connected_components(ref, out);
 }
 
-TEST(Connectic_component, slide_small_two_no_bounderies)
+TEST(Connectic_component, small_two_no_bounderies)
 {
   int width  = 5;
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
 
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = slide;
+  int minimum_pixel = 0;
 
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 1, 3},
@@ -329,16 +311,15 @@ TEST(Connectic_component, slide_small_two_no_bounderies)
   check_connected_components(ref, out);
 }
 
-TEST(Connectic_component, slide_small_full)
+TEST(Connectic_component, small_full)
 {
   int width  = 5;
   int height = 5;
   int img[]  = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = slide;
+  int minimum_pixel = 0;
 
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {0, 0, 5, 5},
@@ -347,109 +328,16 @@ TEST(Connectic_component, slide_small_full)
   check_connected_components(ref, out);
 }
 
-TEST(Connectic_component, slide_one_complexe)
+TEST(Connectic_component, one_complexe)
 {
   int width  = 9;
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0,
                 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = slide;
+  int minimum_pixel = 0;
 
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
-
-  std::set<std::vector<int>> ref = {
-      {1, 1, 7, 3},
-  };
-
-  check_connected_components(ref, out);
-}
-
-TEST(Connectic_component, union_find_small_one_no_bounderies)
-{
-  int width  = 5;
-  int height = 5;
-  int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
-
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = union_find;
-
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
-
-  std::set<std::vector<int>> ref = {
-      {1, 1, 3, 3},
-  };
-
-  check_connected_components(ref, out);
-}
-
-TEST(Connectic_component, union_find_small_one_no_bounderies_holl)
-{
-  int width  = 5;
-  int height = 5;
-  int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
-
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = union_find;
-
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
-
-  std::set<std::vector<int>> ref = {
-      {1, 1, 3, 3},
-  };
-
-  check_connected_components(ref, out);
-}
-
-TEST(Connectic_component, union_find_small_two_no_bounderies)
-{
-  int width  = 5;
-  int height = 5;
-  int img[]  = {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
-
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = union_find;
-
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
-
-  std::set<std::vector<int>> ref = {
-      {1, 1, 1, 3},
-      {3, 1, 1, 3},
-  };
-
-  check_connected_components(ref, out);
-}
-
-TEST(Connectic_component, union_find_small_full)
-{
-  int width  = 5;
-  int height = 5;
-  int img[]  = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = union_find;
-
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
-
-  std::set<std::vector<int>> ref = {
-      {0, 0, 5, 5},
-  };
-
-  check_connected_components(ref, out);
-}
-
-TEST(Connectic_component, union_find_one_complexe)
-{
-  int width  = 9;
-  int height = 5;
-  int img[]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0,
-                1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-  int          minimum_pixel = 0;
-  enum mode_cc mode_cc       = union_find;
-
-  auto out = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+  auto out = get_connected_components(img, width, height, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 7, 3},

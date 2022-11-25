@@ -1,4 +1,4 @@
-#include "pipeline.hh"
+#include "pipeline.cuh"
 
 namespace gpu
 {
@@ -54,5 +54,5 @@ namespace gpu
       if (cudaPeekAtLastError())
         errx(1, "Computation Error");
     }
-  } // namespace two
+  } // namespace one::two
 } // namespace gpu

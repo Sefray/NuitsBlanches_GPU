@@ -11,7 +11,7 @@ namespace cpu
 {
   std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width,
                                       int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                      int binary_threshold, enum mode_cc mode_cc, int minimum_pixel)
+                                      int binary_threshold,  int minimum_pixel)
   {
     // 1.Greyscale
     auto modified_greyscale = greyscale(modified, width, height);
@@ -40,7 +40,7 @@ namespace cpu
     save_img(img, width, height, "binary.png", 255);
 #endif
     // 5.2.Lakes
-    auto components = get_connected_components(img, width, height, mode_cc, minimum_pixel);
+    auto components = get_connected_components(img, width, height, minimum_pixel);
 
     std::free(img);
 

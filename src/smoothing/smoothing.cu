@@ -1,4 +1,4 @@
-#include "pipeline.hh"
+#include "pipeline.cuh"
 
 #include <cstdlib>
 
@@ -118,5 +118,5 @@ namespace gpu
 
       cudaFree(kernel);
     }
-  } // namespace two
+  } // namespace one::two
 } // namespace gpu

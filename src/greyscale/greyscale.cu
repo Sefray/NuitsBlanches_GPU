@@ -1,4 +1,4 @@
-#include "pipeline.hh"
+#include "pipeline.cuh"
 
 namespace gpu
 {
@@ -46,7 +46,7 @@ namespace gpu
 
   namespace one::two
   {
-    void greyscale(unsigned char* d_in, int *d_out, int width, int height)
+    void greyscale(unsigned char* d_in, int* d_out, int width, int height)
     {
       int bsize = 256;
       int g     = std::ceil(((float)(width * height)) / bsize);
