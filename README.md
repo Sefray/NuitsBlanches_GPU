@@ -1,18 +1,21 @@
 # GPU 
 
-## AUTHORS
-Baptiste Bourdet \<baptiste.bourdet@epita.fr\> \
-Hugo Moreau \<hugo.moreau@epita.fr\> \
-Philippe Bernet \<philippe.bernet@epita.fr\> \
+## Authors
+ - Baptiste Bourdet - <baptiste.bourdet@epita.fr>
+ - Hugo Moreau - <hugo.moreau@epita.fr>
+ - Philippe Bernet - <philippe.bernet@epita.fr>
 
----
+## Objectives
 
-The objective of this project is to set up a **pipeline** to detect **objects** in multiple images looking for differences with a reference image. \
+The objective of this project is to set up a **pipeline** to detect **objects**
+in multiple images looking for differences with a reference image.
 
-The pipeline computes the following steps: \
-- greyscale the input image
+The pipeline computes the following steps:
+- apply a grayscale filter on the input image
 - smooth the greyscaled image using a gaussian kernel
-- compute the difference between the smoothed image and the smoothed image of the greyscaled reference image (the reference image is the same for all the images)
+- compute the difference between the smoothed image and the smoothed image of
+  the greyscaled reference image (the reference image is the same for all the
+  images)
 - compute an opening and then a closing with the output of the previous step
 - binarize the output of the previous step
 - compute the connected components and their bouding box of the binarized image
@@ -23,8 +26,6 @@ The pipeline computes the following steps: \
     <img src="data/aled.gif" width="370" height="216" />
 </p>
 
----
-
 ## Build
 
 ```bash
@@ -33,13 +34,13 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
-It is possible to build everything with the following command: \
+It is possible to build everything with the following command:
 
 ```bash
 make -j
 ```
 
-It is also possible to build the executable separately :
+It is also possible to build the executable separately:
 
 ```bash
 make main
@@ -49,15 +50,16 @@ make bench
 
 ## Main
 
-The program can be used as follows: \
+The program can be used as follows:
 
 ```bash
 Usage: ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
 ```
 
-Note that the dashs are mandatory. \
+Note that the *double dash* (`--`) is mandatory.
 
-The program will then output on standard output a json with the following format \
+The program will then output on standard output a json with the following
+format:
 
 ```json
 {
@@ -75,7 +77,7 @@ The program will then output on standard output a json with the following format
 }
 ```
 
-To know possible parameters of the program, you can use the following command: \
+To know possible options of the program, you can use the `--help` options:
 
 ```bash
 ./main --help
@@ -103,8 +105,10 @@ Usage: ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH)
 
 ## Test
 
-Test are only performed on the CPU version of the program. \
-Tests are done with Google Test and can be executed with the following command: \
+Test are only performed on the CPU version of the program.
+
+Tests are done with [Google Test](https://github.com/google/googletest) and can
+be executed with the following command:
 
 ```bash
 ./test
@@ -114,12 +118,15 @@ Tests are done with Google Test and can be executed with the following command: 
 
 ## Bench
 
-Benchmarks are done with Google Benchmark.
+Benchmarks are done with [Google
+Benchmark](https://github.com/google/benchmark).
 
 ### Unit
 
-The unit benchmark displays performances of the element of the pipeline (on *Nuits Blanches* image). \
-Unit benchmark can be performed as follow: \
+The unit benchmark displays performances of the element of the pipeline (on
+*Nuits Blanches* image).
+
+Unit benchmark can be performed as follow:
 
 ```bash
 42sh$ ./bench_unit
@@ -134,12 +141,13 @@ BM_Threshold/real_time                 0.171 ms        0.171 ms        10000
 BM_Connectic_components/real_time       21.4 ms         21.4 ms           33
 ```
 
-Only the computating time is concidered. \
+Only the computating time is considered.
 
 ## Full
 
-The full benchmark displays performances of the complete for multiple version. \
-Full benchmark can be performed as follow: \
+The full benchmark displays performances of the complete for multiple version.
+
+Full benchmark can be performed as follow:
 
 ```bash
 42sh$ ./bench
@@ -155,13 +163,14 @@ BM_Detection_folder_nb/nuits_blanches_gpu_one/real_time       31876 ms        31
 BM_Detection_folder_nb/nuits_blanches_gpu_five/real_time       3725 ms         3721 ms            1 items_per_second=21.7461/s
 ```
 
-The data loading is not considered. \
+The data loading is not considered.
 
 ---
 
 # Video maker
 
-A video maker is also available to make a video of the detection of objects in the images. \
+A video maker is also available to make a video of the detection of objects in
+the images.
 
 ```bash
 ./main [OPTIONS] -- REFENCE_IMAGE_PATH ([IMAGE_PATH]*|DIRECTORY_PATH) | python video_maker.py [-o output.avi] [-f FPS]
