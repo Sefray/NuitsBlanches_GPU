@@ -4,16 +4,6 @@
 
 namespace gpu
 {
-  struct Box
-  {
-    int xmin;
-    int ymin;
-    int xmax;
-    int ymax;
-
-    int size;
-  };
-
   __global__ void gpu_init_label(int* d_in_out, int width, int height)
   {
     int p = blockDim.x * blockIdx.x + threadIdx.x;
@@ -82,7 +72,7 @@ namespace gpu
     return *h_r;
   }
 
-  __global__ void gpu_compute_find(int* d_image, int width, int height, Box* d_boxes)
+  __global__ void gpu_compute_find(int* d_image, int* d_image_values, int width, int height, Box* d_boxes)
   {
     int p = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -104,10 +94,12 @@ namespace gpu
     atomicMax(&(d_boxes[-l].xmax), x);
     atomicMax(&(d_boxes[-l].ymax), y);
 
+    atomicMax(&(d_boxes[-l].high_pick), d_image_values[x + y * width]);
     atomicAdd(&(d_boxes[-l].size), 1);
   }
 
-  std::set<std::vector<int>> compute_find(int* d_in, int width, int height, int minimum_pixel, int nb_boxes)
+  std::set<std::vector<int>> compute_find(int* d_in, int* d_image_values, int width, int height,
+                                          int high_pick_threshold, int minimum_pixel, int nb_boxes)
   {
     int  rc      = cudaSuccess;
     Box* h_boxes = static_cast<Box*>(std::calloc(nb_boxes + 1, sizeof(Box)));
@@ -131,7 +123,7 @@ namespace gpu
     dim3 dimBlock(bsize);
     dim3 dimGrid(g);
 
-    gpu_compute_find<<<dimGrid, dimBlock>>>(d_in, width, height, d_boxes);
+    gpu_compute_find<<<dimGrid, dimBlock>>>(d_in, d_image_values, width, height, d_boxes);
 
     if (cudaPeekAtLastError())
       errx(1, "Computation Error");
@@ -144,7 +136,7 @@ namespace gpu
     for (int i = 1; i < nb_boxes + 1; i++)
     {
       auto& box = h_boxes[i];
-      if (box.size > minimum_pixel)
+      if (box.size >= minimum_pixel && box.high_pick >= high_pick_threshold)
         ret.insert({box.xmin, box.ymin, box.xmax - box.xmin + 1, box.ymax - box.ymin + 1});
     }
 
@@ -218,7 +210,8 @@ namespace gpu
 
   namespace one
   {
-    std::set<std::vector<int>> get_connected_components(int* d_in_out, int width, int height, int minimum_pixel)
+    std::set<std::vector<int>> get_connected_components(int* d_in_out, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel)
     {
       init_label(d_in_out, width, height);
 
@@ -246,7 +239,9 @@ namespace gpu
 
       int r = relabel(d_in_out, width, height);
 
-      auto ret = compute_find(d_in_out, width, height, minimum_pixel, r);
+      auto ret = compute_find(d_in_out, d_image_values, width, height, high_pick_threshold, minimum_pixel, r);
+
+      cudaFree(d_changed);
 
       return ret;
     }
@@ -261,7 +256,8 @@ namespace gpu
       *a       = tmp;
     }
 
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel)
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel)
     {
       init_label(d_A, width, height);
       cudaMemset((void*)d_B, 0, sizeof(int) * width * height);
@@ -291,7 +287,7 @@ namespace gpu
 
       int r = relabel(d_A, width, height);
 
-      auto ret = compute_find(d_A, width, height, minimum_pixel, r);
+      auto ret = compute_find(d_A, d_image_values, width, height, high_pick_threshold, minimum_pixel, r);
 
       return ret;
     }
@@ -306,7 +302,7 @@ namespace gpu
       int x = p % width;
       int y = p / width;
 
-      if (x >= width || y >= height || !(p % 32))
+      if (x >= width || y >= height)
         return;
 
       for (int s = 0; s < 32 && s + p < width * height; s++)
@@ -352,7 +348,8 @@ namespace gpu
         errx(1, "Computation Error");
     }
 
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel)
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel)
     {
       init_label(d_A, width, height);
       cudaMemset((void*)d_B, 0, sizeof(int) * width * height);
@@ -383,7 +380,7 @@ namespace gpu
 
       int r = relabel(d_A, width, height);
 
-      auto ret = compute_find(d_A, width, height, minimum_pixel, r);
+      auto ret = compute_find(d_A, d_image_values, width, height, high_pick_threshold, minimum_pixel, r);
 
       return ret;
     }

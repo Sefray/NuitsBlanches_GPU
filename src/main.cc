@@ -42,6 +42,8 @@ int main(int argc, char* argv[])
       "{kernel_size_opening      |101|Should be odd}"
       "{kernel_size_closing      |41|Should be odd}"
       "{binary_threshold         |12|Minimum value for a pixel to be considered as a binary pixel}"
+      "{high_pick_threshold      |30|Minimum value for a pixel to be considered as a high pick and implies bouding box "
+      "to be kept}"
       "{minimum_pixel_percentage |1.0|Percentage of the space occupied by the object to be considered as a detection}"
 
       "{folder                   |false|Is the path a folder}"
@@ -71,6 +73,7 @@ int main(int argc, char* argv[])
   int   kernel_size_opening      = parser.get<int>("kernel_size_opening");
   int   kernel_size_closing      = parser.get<int>("kernel_size_closing");
   int   binary_threshold         = parser.get<int>("binary_threshold");
+  int   high_pick_threshold      = parser.get<int>("high_pick_threshold");
   float minimum_pixel_percentage = parser.get<float>("minimum_pixel_percentage");
 
   auto ref = cv::imread(*argv, cv::IMREAD_COLOR);
@@ -93,7 +96,7 @@ int main(int argc, char* argv[])
   }
 
   json ret = main_func[mode](images, ref.data, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                             binary_threshold, minimum_pixel);
+                             binary_threshold, high_pick_threshold, minimum_pixel);
 
   for (auto& img : images)
   {

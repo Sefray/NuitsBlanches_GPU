@@ -21,7 +21,8 @@ namespace cpu
     return r;
   }
 
-  std::set<std::vector<int>> compute_find(int* image, int width, int height, int minimum_pixel, int nb_boxes)
+  std::set<std::vector<int>> compute_find(int* image, int* image_values, int width, int height, int high_pick_threshold,
+                                          int minimum_pixel, int nb_boxes)
   {
     Box* boxes = static_cast<Box*>(std::calloc(nb_boxes + 1, sizeof(Box)));
 
@@ -49,6 +50,8 @@ namespace cpu
             box.xmax = x;
             box.ymax = y;
           }
+
+          box.high_pick = std::max(box.high_pick, image_values[x + y * width]);
           box.size++;
         }
       }
@@ -58,7 +61,7 @@ namespace cpu
     for (int i = 1; i < nb_boxes + 1; i++)
     {
       auto& box = boxes[i];
-      if (box.size > minimum_pixel)
+      if (box.size >= minimum_pixel && box.high_pick >= high_pick_threshold)
         ret.insert({box.xmin, box.ymin, box.xmax - box.xmin + 1, box.ymax - box.ymin + 1});
     }
 
@@ -135,7 +138,8 @@ namespace cpu
     return changed;
   }
 
-  std::set<std::vector<int>> get_connected_components_l(int* image, int width, int height, int minimum_pixel)
+  std::set<std::vector<int>> get_connected_components(int* image, int* image_values, int width, int height,
+                                                      int high_pick_threshold, int minimum_pixel)
   {
     init_label(image, width, height);
 
@@ -145,22 +149,7 @@ namespace cpu
 
     int nb_label = relabel(image, width, height);
 
-    auto ret = compute_find(image, width, height, minimum_pixel, nb_label);
-
-    return ret;
-  }
-
-  std::set<std::vector<int>> get_connected_components(int* image, int width, int height, int minimum_pixel)
-  {
-    init_label(image, width, height);
-
-    bool changed = true;
-    while (changed)
-      changed = propaged_label(image, width, height);
-
-    int nb_label = relabel(image, width, height);
-
-    auto ret = compute_find(image, width, height, minimum_pixel, nb_label);
+    auto ret = compute_find(image, image_values, width, height, high_pick_threshold, minimum_pixel, nb_label);
 
     return ret;
   }

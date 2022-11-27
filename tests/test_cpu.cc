@@ -265,9 +265,10 @@ TEST(Connectic_component, small_one_no_bounderies)
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
 
-  int minimum_pixel = 0;
+  int minimum_pixel       = 0;
+  int high_pick_threshold = 1;
 
-  auto out = get_connected_components(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, img, width, height, high_pick_threshold, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
@@ -282,9 +283,10 @@ TEST(Connectic_component, small_one_no_bounderies_holl)
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0};
 
-  int minimum_pixel = 0;
+  int minimum_pixel       = 0;
+  int high_pick_threshold = 1;
 
-  auto out = get_connected_components(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, img, width, height, high_pick_threshold, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 3, 3},
@@ -299,9 +301,10 @@ TEST(Connectic_component, small_two_no_bounderies)
   int height = 5;
   int img[]  = {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
 
-  int minimum_pixel = 0;
+  int minimum_pixel       = 0;
+  int high_pick_threshold = 1;
 
-  auto out = get_connected_components(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, img, width, height, high_pick_threshold, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 1, 3},
@@ -317,9 +320,10 @@ TEST(Connectic_component, small_full)
   int height = 5;
   int img[]  = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  int minimum_pixel = 0;
+  int minimum_pixel       = 0;
+  int high_pick_threshold = 1;
 
-  auto out = get_connected_components(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, img, width, height, high_pick_threshold, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {0, 0, 5, 5},
@@ -335,9 +339,10 @@ TEST(Connectic_component, one_complexe)
   int img[]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0,
                 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  int minimum_pixel = 0;
+  int minimum_pixel       = 0;
+  int high_pick_threshold = 1;
 
-  auto out = get_connected_components(img, width, height, minimum_pixel);
+  auto out = get_connected_components(img, img, width, height, high_pick_threshold, minimum_pixel);
 
   std::set<std::vector<int>> ref = {
       {1, 1, 7, 3},

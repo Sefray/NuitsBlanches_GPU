@@ -20,11 +20,12 @@ namespace gpu
     int* compute_difference(int* d_ref_in, int* d_in, int width, int height);
     void binary_image(int* d_in_out, int width, int height, int threshold);
     int* closing_opening(int* d_A, int width, int height, int kernel_size_opening, int kernel_size_closing);
-    std::set<std::vector<int>> get_connected_components(int* d_in, int width, int height, int minimum_pixel);
+    std::set<std::vector<int>> get_connected_components(int* d_in, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel);
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel);
   } // namespace one
 
   namespace one::two
@@ -33,12 +34,14 @@ namespace gpu
     void smoothing(int* d_in, int* d_out, int width, int height, float* kernel, int kernel_size);
     void compute_difference(int* d_ref_in, int* d_in, int* d_out, int width, int height);
     void closing_opening(int* d_A, int* d_B, int width, int height, int kernel_size_opening, int kernel_size_closing);
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel);
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel);
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel, unsigned char* buffer_uc,
-                                        int* d_buffer_A, int* d_buffer_B, float* kernel);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel,
+                                        unsigned char* buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        int* d_buffer_image_values, float* kernel);
   } // namespace one::two
 
   namespace one::two::three
@@ -47,18 +50,21 @@ namespace gpu
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel, unsigned char* buffer_uc,
-                                        int* d_buffer_A, int* d_buffer_B, float* kernel);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel,
+                                        unsigned char* buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        int* d_buffer_image_values, float* kernel);
   } // namespace one::two::three
 
   namespace one::two::three::four
   {
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height, int minimum_pixel);
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel);
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel, unsigned char* buffer_uc,
-                                        int* d_buffer_A, int* d_buffer_B, float* kernel);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel,
+                                        unsigned char* buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        int* d_buffer_image_values, float* kernel);
   } // namespace one::two::three::four
 
   namespace one::two::three::four::five
@@ -67,8 +73,9 @@ namespace gpu
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel, unsigned char* buffer_uc,
-                                        int* d_buffer_A, int* d_buffer_B, float* kernel);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel,
+                                        unsigned char* buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        int* d_buffer_image_values, float* kernel);
   } // namespace one::two::three::four::five
 
   namespace one::two::three::four::five::six
@@ -80,8 +87,8 @@ namespace gpu
 
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                                        int binary_threshold, int minimum_pixel, unsigned char* buffer_uc,
-                                        int* d_buffer_A, int* d_buffer_B, float* kernel,
-                                        std::vector<cudaStream_t>& streams);
+                                        int binary_threshold, int high_pick_threshold, int minimum_pixel,
+                                        unsigned char* buffer_uc, int* d_buffer_A, int* d_buffer_B,
+                                        int* d_buffer_image_values, float* kernel, std::vector<cudaStream_t>& streams);
   } // namespace one::two::three::four::five::six
 } // namespace gpu

@@ -174,17 +174,17 @@ A video maker is also available to make a video of the detection of objects in t
 ### Nuits Blanches
 
 ```bash
---binary_threshold=20 --kernel_size_opening=41 --kernel_size_closing=21 --minimum_pixel_percentage=0.5
+--binary_threshold=10 --high_pick_threshold=20 --kernel_size_opening=41 --kernel_size_closing=21 --minimum_pixel_percentage=0.5
 ```
 
 ### Scia Premium
 
 ```bash
---binary_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=5
+--binary_threshold=40 --high_pick_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=5
 ```
 
 ### Aled
 
 ```bash
---binary_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=1
+--binary_threshold=20 --high_pick_threshold=40 --kernel_size_opening=21 --kernel_size_closing=15 --minimum_pixel_percentage=1
 ```

@@ -7,7 +7,7 @@ using json = nlohmann::json;
 
 json main_cpu(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
               int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-              int minimum_pixel)
+              int high_pick_threshold, int minimum_pixel)
 {
   auto ref_greyscale = cpu::greyscale(ref, width, height);
   auto ref_smoothed  = cpu::smoothing(ref_greyscale, width, height, kernel_size);
@@ -17,7 +17,7 @@ json main_cpu(std::vector<std::tuple<std::string, unsigned char*>> images, unsig
   {
     auto [name, image] = images[image_index];
     ret[name] = cpu::pipeline(ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                              binary_threshold, minimum_pixel);
+                              binary_threshold, high_pick_threshold, minimum_pixel);
   }
 
   std::free(ref_smoothed);
@@ -26,7 +26,7 @@ json main_cpu(std::vector<std::tuple<std::string, unsigned char*>> images, unsig
 }
 json main_gpu_1(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one;
 
@@ -40,7 +40,7 @@ json main_gpu_1(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   {
     auto [name, image] = images[image_index];
     ret[name] = pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel);
+                         binary_threshold, high_pick_threshold, minimum_pixel);
   }
 
   std::free(h_ref_greyscale);
@@ -52,7 +52,7 @@ json main_gpu_1(std::vector<std::tuple<std::string, unsigned char*>> images, uns
 template <typename T>
 json main_gpu_buffer(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width,
                      int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
-                     int binary_threshold, int minimum_pixel, T p)
+                     int binary_threshold, int high_pick_threshold, int minimum_pixel, T p)
 {
   auto h_ref_greyscale = cpu::greyscale(ref, width, height);
 
@@ -67,62 +67,65 @@ json main_gpu_buffer(std::vector<std::tuple<std::string, unsigned char*>> images
   int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
   unsigned char* d_buffer_uc =
       static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
+  int* d_image_values = gpu::my_cuda_malloc(sizeof(int) * width * height);
 
   json ret;
   for (size_t image_index = 0; image_index < images.size(); image_index++)
   {
     auto [name, image] = images[image_index];
-    ret[name]          = p(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                           binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, d_kernel_smooth);
+    ret[name] =
+        p(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing, binary_threshold,
+          high_pick_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, d_image_values, d_kernel_smooth);
   }
 
   cudaFree(d_kernel_smooth);
   gpu::my_cuda_free(d_ref_smoothed);
   gpu::my_cuda_free(d_buffer_A);
   gpu::my_cuda_free(d_buffer_B);
+  gpu::my_cuda_free(d_image_values);
 
   return ret;
 }
 
 json main_gpu_2(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one::two;
   return main_gpu_buffer(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel, pipeline);
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }
 
 json main_gpu_3(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one::two::three;
   return main_gpu_buffer(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel, pipeline);
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }
 
 json main_gpu_4(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one::two::three::four;
   return main_gpu_buffer(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel, pipeline);
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }
 
 json main_gpu_5(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one::two::three::four::five;
   return main_gpu_buffer(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, minimum_pixel, pipeline);
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }
 
 json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int minimum_pixel)
+                int high_pick_threshold, int minimum_pixel)
 {
   using namespace gpu::one::two::three::four::five::six;
 
@@ -138,6 +141,7 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   int*           d_buffer_B      = gpu::my_cuda_malloc(sizeof(int) * width * height);
   unsigned char* d_buffer_uc =
       static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
+  int* d_image_values = gpu::my_cuda_malloc(sizeof(int) * width * height);
 
   // Streams creation
   std::vector<cudaStream_t> streams;
@@ -152,15 +156,16 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   for (size_t image_index = 0; image_index < images.size(); image_index++)
   {
     auto [name, image] = images[image_index];
-    ret[name] =
-        pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                 binary_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B, d_kernel_smooth, streams);
+    ret[name] = pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                         binary_threshold, high_pick_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B,
+                         d_image_values, d_kernel_smooth, streams);
   }
 
   cudaFree(d_kernel_smooth);
   gpu::my_cuda_free(d_ref_smoothed);
   gpu::my_cuda_free(d_buffer_A);
   gpu::my_cuda_free(d_buffer_B);
+  gpu::my_cuda_free(d_image_values);
 
   return ret;
 }
