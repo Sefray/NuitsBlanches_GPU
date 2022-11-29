@@ -16,6 +16,7 @@ enum mode
   GPU_4,
   GPU_5,
   GPU_6,
+  GPU_7,
 };
 
 struct Box

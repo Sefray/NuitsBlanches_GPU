@@ -38,3 +38,7 @@ json main_gpu_5(std::vector<std::tuple<std::string, unsigned char*>> images, uns
 json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
                 int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
                 int high_pick_threshold, int minimum_pixel);
+
+json main_gpu_7(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
+                int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                int high_pick_threshold, int minimum_pixel);
