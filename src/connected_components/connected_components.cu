@@ -398,20 +398,24 @@ namespace gpu
       if (x >= width || y >= height)
         return;
 
-      __shared__ bool s_changed;
+      __shared__ int s_changed;
 
       if (threadIdx.x == 0)
         s_changed = 0;
 
-      __syncthreads();
-
       do
       {
-        if (p == 0)
-        {
-          *changed = 0;
-          printf("s_changed: %d\n", s_changed);
-        }
+        // __syncthreads();
+
+        // if (threadIdx.x == 0)
+        //   *changed  = 0;
+
+        __syncthreads();
+
+        if (threadIdx.x == 0)
+          s_changed = 0;
+
+        __syncthreads();
 
         int cmin = d_in_out[p];
         if (cmin != 0)
@@ -422,6 +426,7 @@ namespace gpu
 
           if (min < cmin)
           {
+            // printf("%d %d %d\n", min, s_changed, *changed);
             s_changed   = 1;
             d_in_out[p] = min;
           }
@@ -429,14 +434,16 @@ namespace gpu
 
         __syncthreads();
 
-        if (threadIdx.x == 0)
-        {
-          atomicOr(changed, s_changed);
-          s_changed = 0;
-        }
+        // if (threadIdx.x == 0)
+        // {
+        //   atomicOr(changed, s_changed);
+        //   s_changed = 0;
+        // }
 
-        __syncthreads();
-      } while (*changed);
+        // __syncthreads();
+
+        // } while (*changed);
+      } while (s_changed);
     }
 
     void propaged_label(int* d_in, int width, int height)
