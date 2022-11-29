@@ -18,7 +18,7 @@ The pipeline computes the following steps:
   images)
 - compute an opening and then a closing with the output of the previous step
 - binarize the output of the previous step
-- compute the connected components and their bouding box of the binarized image
+- compute the connected components and their bounding box of the binarized image
 
 <p float="left">
     <img src="data/nb.gif" width="370" height="216" />
