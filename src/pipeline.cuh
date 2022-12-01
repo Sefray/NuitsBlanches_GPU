@@ -94,9 +94,9 @@ namespace gpu
 
   namespace one::two::three::four::five::six::seven
   {
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height,
                                                         int high_pick_threshold, int minimum_pixel);
-   
+
     std::set<std::vector<int>> pipeline(int* ref_smoothed, unsigned char* modified, int width, int height,
                                         int kernel_size, int kernel_size_opening, int kernel_size_closing,
                                         int binary_threshold, int high_pick_threshold, int minimum_pixel,

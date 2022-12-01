@@ -467,7 +467,7 @@ namespace gpu
       cudaFree(d_changed);
     }
 
-    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int width, int height,
                                                         int high_pick_threshold, int minimum_pixel)
     {
       init_label(d_A, width, height);
@@ -476,7 +476,7 @@ namespace gpu
 
       int r = relabel(d_A, width, height);
 
-      auto ret = compute_find(d_A, d_image_values, width, height, high_pick_threshold, minimum_pixel, r);
+      auto ret = compute_find(d_A, d_B, width, height, high_pick_threshold, minimum_pixel, r);
 
       return ret;
     }

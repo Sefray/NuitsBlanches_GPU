@@ -317,12 +317,12 @@ namespace gpu
       closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing, streams);
 
       // 5
-      cudaMemcpy(d_buffer_image_values, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
+      cudaMemcpy(d_buffer_B, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
       // 5.1.Thresh image
       binary_image(d_buffer_A, width, height, binary_threshold);
       // 5.2.Lakes
-      auto components = get_connected_components(d_buffer_A, d_buffer_B, d_buffer_image_values, width, height,
-                                                 high_pick_threshold, minimum_pixel);
+      auto components =
+          get_connected_components(d_buffer_A, d_buffer_B, width, height, high_pick_threshold, minimum_pixel);
 
       return components;
     }

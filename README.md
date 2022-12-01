@@ -138,7 +138,7 @@ BM_Blur/real_time                       1.57 ms         1.57 ms        10000
 BM_Diff/real_time                      0.238 ms        0.238 ms        10000
 BM_Closing_Opening/real_time            18.0 ms         18.0 ms           38
 BM_Threshold/real_time                 0.171 ms        0.171 ms        10000
-BM_Connectic_components/real_time       21.4 ms         21.4 ms           33
+BM_Connectic_components/real_time       1.89 ms         1.89 ms          373
 ```
 
 Only the computating time is considered.
@@ -154,13 +154,13 @@ Full benchmark can be performed as follow:
 -------------------------------------------------------------------------------------------------------------------
 Benchmark                                                         Time             CPU   Iterations UserCounters...
 -------------------------------------------------------------------------------------------------------------------
-BM_Detection_file_nb/nuits_blanches_cpu/real_time              8786 ms         8785 ms            1 items_per_second=0.113823/s
-BM_Detection_file_nb/nuits_blanches_gpu_one/real_time          1663 ms          666 ms            1 items_per_second=0.601193/s
+BM_Detection_file_nb/nuits_blanches_cpu/real_time              8786 ms         8785 ms             1 items_per_second=0.113823/s
+BM_Detection_file_nb/nuits_blanches_gpu_one/real_time          1663 ms          666 ms             1 items_per_second=0.601193/s
 [...]
-BM_Detection_file_nb/nuits_blanches_gpu_five/real_time          116 ms          111 ms            6 items_per_second=8.65792/s
-BM_Detection_folder_nb/nuits_blanches_gpu_one/real_time       31876 ms        31370 ms            1 items_per_second=2.5411/s
+BM_Detection_file_nb/nuits_blanches_gpu_seven/real_time         61.4 ms         56.4 ms           11 items_per_second=16.282/s
+BM_Detection_folder_nb/nuits_blanches_gpu_one/real_time       31876 ms        31370 ms             1 items_per_second=2.5411/s
 [...]
-BM_Detection_folder_nb/nuits_blanches_gpu_five/real_time       3725 ms         3721 ms            1 items_per_second=21.7461/s
+BM_Detection_folder_nb/nuits_blanches_gpu_seven/real_time       1926 ms         1918 ms            1 items_per_second=42.0527/s
 ```
 
 The data loading is not considered.

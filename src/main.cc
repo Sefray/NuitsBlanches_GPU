@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 {
   cv::CommandLineParser parser(
       argc, argv,
-      "{mode                     |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 6:GPU6}"
+      "{mode                     |0|0:CPU 1:GPU1 2:GPU2 3:GPU3 4:GPU4 5:GPU5 6:GPU6 7:GPU7}"
 
       "{kernel_size              |5|Size of the kernel for the gaussian blur}"
       "{kernel_size_opening      |101|Should be odd}"

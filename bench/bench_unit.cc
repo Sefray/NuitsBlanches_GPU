@@ -255,10 +255,9 @@ void BM_Connectic_components(benchmark::State& state)
 
   unsigned char* h_input = img.data;
 
-  int*           d_buffer_A     = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int*           d_buffer_B     = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int*           d_buffer_C     = gpu::my_cuda_malloc(sizeof(int) * width * height);
-  int*           d_image_values = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_A = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_B = gpu::my_cuda_malloc(sizeof(int) * width * height);
+  int*           d_buffer_C = gpu::my_cuda_malloc(sizeof(int) * width * height);
   unsigned char* d_buffer_uc =
       static_cast<unsigned char*>(static_cast<void*>(gpu::my_cuda_malloc(sizeof(unsigned char) * width * height * 3)));
   cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
@@ -272,13 +271,13 @@ void BM_Connectic_components(benchmark::State& state)
   compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
   closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing);
 
-  cudaMemcpy(d_image_values, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
+  cudaMemcpy(d_buffer_B, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
   gpu::one::binary_image(d_buffer_A, width, height, binary_threshold);
   for (auto _ : state)
   {
     cudaMemcpy(d_buffer_C, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
-    gpu::one::two::three::four::get_connected_components(d_buffer_C, d_buffer_B, d_image_values, width, height,
-                                                         high_pick_threshold, minimum_pixel);
+    gpu::one::two::three::four::five::six::seven::get_connected_components(d_buffer_C, d_buffer_B, width, height,
+                                                                           high_pick_threshold, minimum_pixel);
   }
 
   cudaFree(d_ref_in);
@@ -287,7 +286,6 @@ void BM_Connectic_components(benchmark::State& state)
   gpu::my_cuda_free(d_buffer_A);
   gpu::my_cuda_free(d_buffer_B);
   gpu::my_cuda_free(d_buffer_C);
-  gpu::my_cuda_free(d_image_values);
 }
 
 BENCHMARK(BM_Greyscale)->Unit(benchmark::kMillisecond)->UseRealTime();
