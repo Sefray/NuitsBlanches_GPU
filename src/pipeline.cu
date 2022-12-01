@@ -291,4 +291,40 @@ namespace gpu
       return components;
     }
   } // namespace one::two::three::four::five::six
+  namespace one::two::three::four::five::six::seven
+  {
+    std::set<std::vector<int>> pipeline(int* d_ref_in, unsigned char* h_input, int width, int height, int kernel_size,
+                                        int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                                        int high_pick_threshold, int minimum_pixel, unsigned char* d_buffer_uc,
+                                        int* d_buffer_A, int* d_buffer_B, int* d_buffer_image_values,
+                                        float* d_kernel_smooth, std::vector<cudaStream_t>& streams)
+    {
+      cudaMemcpy(d_buffer_uc, h_input, sizeof(unsigned char) * width * height * 3, cudaMemcpyHostToDevice);
+
+      // 1.Greyscale
+      greyscale(d_buffer_uc, d_buffer_A, width, height);
+
+      // Buffer Allocation
+      my_cuda_mem_set(d_buffer_B, 0, sizeof(int) * width * height);
+
+      // 2.Smooth (gaussian filter)
+      smoothing(d_buffer_A, d_buffer_B, width, height, d_kernel_smooth, kernel_size);
+
+      // 3.Difference
+      compute_difference(d_ref_in, d_buffer_B, d_buffer_A, width, height);
+
+      // 4.Closing/opening with disk or rectangle
+      closing_opening(d_buffer_A, d_buffer_B, width, height, kernel_size_opening, kernel_size_closing, streams);
+
+      // 5
+      cudaMemcpy(d_buffer_image_values, d_buffer_A, sizeof(int) * width * height, cudaMemcpyDeviceToDevice);
+      // 5.1.Thresh image
+      binary_image(d_buffer_A, width, height, binary_threshold);
+      // 5.2.Lakes
+      auto components = get_connected_components(d_buffer_A, d_buffer_B, d_buffer_image_values, width, height,
+                                                 high_pick_threshold, minimum_pixel);
+
+      return components;
+    }
+  } // namespace one::two::three::four::five::six::seven
 } // namespace gpu

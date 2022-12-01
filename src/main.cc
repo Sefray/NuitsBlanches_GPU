@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
   int minimum_pixel = width * height * minimum_pixel_percentage / 100;
 
   std::vector<std::function<decltype(main_cpu)>> main_func = {main_cpu,   main_gpu_1, main_gpu_2, main_gpu_3,
-                                                              main_gpu_4, main_gpu_5, main_gpu_6};
+                                                              main_gpu_4, main_gpu_5, main_gpu_6, main_gpu_7};
 
   std::vector<std::tuple<std::string, unsigned char*>> images;
   for (auto& file : vargv)

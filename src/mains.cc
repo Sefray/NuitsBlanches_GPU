@@ -123,12 +123,11 @@ json main_gpu_5(std::vector<std::tuple<std::string, unsigned char*>> images, uns
                          binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }
 
-json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
-                int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
-                int high_pick_threshold, int minimum_pixel)
+template <typename T>
+json main_gpu_stream(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width,
+                     int height, int kernel_size, int kernel_size_opening, int kernel_size_closing,
+                     int binary_threshold, int high_pick_threshold, int minimum_pixel, T p)
 {
-  using namespace gpu::one::two::three::four::five::six;
-
   auto h_ref_greyscale = cpu::greyscale(ref, width, height);
 
   auto d_ref_greyscale = gpu::malloc_and_copy(h_ref_greyscale, width, height);
@@ -145,7 +144,7 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
 
   // Streams creation
   std::vector<cudaStream_t> streams;
-  for (size_t i = 0; i < nb_stream; i++)
+  for (size_t i = 0; i < gpu::one::two::three::four::five::six::nb_stream; i++)
   {
     cudaStream_t stream;
     cudaStreamCreate(&stream);
@@ -156,9 +155,9 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   for (size_t image_index = 0; image_index < images.size(); image_index++)
   {
     auto [name, image] = images[image_index];
-    ret[name] = pipeline(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
-                         binary_threshold, high_pick_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B,
-                         d_image_values, d_kernel_smooth, streams);
+    ret[name]          = p(d_ref_smoothed, image, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                           binary_threshold, high_pick_threshold, minimum_pixel, d_buffer_uc, d_buffer_A, d_buffer_B,
+                           d_image_values, d_kernel_smooth, streams);
   }
 
   cudaFree(d_kernel_smooth);
@@ -168,4 +167,22 @@ json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, uns
   gpu::my_cuda_free(d_image_values);
 
   return ret;
+}
+
+json main_gpu_6(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
+                int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                int high_pick_threshold, int minimum_pixel)
+{
+  using namespace gpu::one::two::three::four::five::six;
+  return main_gpu_stream(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
+}
+
+json main_gpu_7(std::vector<std::tuple<std::string, unsigned char*>> images, unsigned char* ref, int width, int height,
+                int kernel_size, int kernel_size_opening, int kernel_size_closing, int binary_threshold,
+                int high_pick_threshold, int minimum_pixel)
+{
+  using namespace gpu::one::two::three::four::five::six::seven;
+  return main_gpu_stream(images, ref, width, height, kernel_size, kernel_size_opening, kernel_size_closing,
+                         binary_threshold, high_pick_threshold, minimum_pixel, pipeline);
 }

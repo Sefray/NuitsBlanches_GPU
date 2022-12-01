@@ -385,4 +385,100 @@ namespace gpu
       return ret;
     }
   } // namespace one::two::three::four
+
+  namespace one::two::three::four::five::six::seven
+  {
+    __global__ void gpu_propaged_label(int* d_in_out, int* changed, int width, int height)
+    {
+      int p = blockDim.x * blockIdx.x + threadIdx.x;
+
+      int x = p % width;
+      int y = p / width;
+
+      if (x >= width || y >= height)
+        return;
+
+      __shared__ int s_changed;
+
+      if (threadIdx.x == 0)
+        s_changed = 0;
+
+      do
+      {
+        // __syncthreads();
+
+        // if (threadIdx.x == 0)
+        //   *changed  = 0;
+
+        __syncthreads();
+
+        if (threadIdx.x == 0)
+          s_changed = 0;
+
+        __syncthreads();
+
+        int cmin = d_in_out[p];
+        if (cmin != 0)
+        {
+          if (cmin < 0)
+            cmin *= -1;
+          int min = get_min_neighbor(d_in_out, p, cmin, x, y, width, height, width);
+
+          if (min < cmin)
+          {
+            // printf("%d %d %d\n", min, s_changed, *changed);
+            s_changed   = 1;
+            d_in_out[p] = min;
+          }
+        }
+
+        __syncthreads();
+
+        // if (threadIdx.x == 0)
+        // {
+        //   atomicOr(changed, s_changed);
+        //   s_changed = 0;
+        // }
+
+        // __syncthreads();
+
+        // } while (*changed);
+      } while (s_changed);
+    }
+
+    void propaged_label(int* d_in, int width, int height)
+    {
+      int* d_changed;
+      int  rc = cudaMalloc(&d_changed, sizeof(int));
+      if (rc)
+        errx(1, "Fail changed allocation");
+
+      int bsize = 256;
+      int g     = std::ceil(((float)(width * height)) / bsize);
+
+      dim3 dimBlock(bsize);
+      dim3 dimGrid(g);
+
+      gpu_propaged_label<<<dimGrid, dimBlock, sizeof(int)>>>(d_in, d_changed, width, height);
+
+      if (cudaPeekAtLastError())
+        errx(1, "Computation Error");
+
+      cudaFree(d_changed);
+    }
+
+    std::set<std::vector<int>> get_connected_components(int* d_A, int* d_B, int* d_image_values, int width, int height,
+                                                        int high_pick_threshold, int minimum_pixel)
+    {
+      init_label(d_A, width, height);
+
+      propaged_label(d_A, width, height);
+
+      int r = relabel(d_A, width, height);
+
+      auto ret = compute_find(d_A, d_image_values, width, height, high_pick_threshold, minimum_pixel, r);
+
+      return ret;
+    }
+  } // namespace one::two::three::four::five::six::seven
 } // namespace gpu
